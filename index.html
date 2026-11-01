@@ -57,6 +57,40 @@ const mat=(c,r=.85,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,met
 const stone=mat(0x718d8b,1),stoneLight=mat(0x9baea2,.92),bark=mat(0x756b59,1),leafA=mat(0x5f8d7d,1),leafB=mat(0x82a88b,1),leafC=mat(0xa8bd91,1);
 const sky=new THREE.Mesh(new THREE.SphereGeometry(700,32,20),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color(0x397ca7)},mid:{value:new THREE.Color(0x9ccbd9)},low:{value:new THREE.Color(0xf4d9bd)}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top,mid,low;void main(){float h=normalize(p).y;vec3 c=mix(low,mid,smoothstep(-.3,.2,h));c=mix(c,top,smoothstep(.08,.82,h));gl_FragColor=vec4(c,1.);}'}));scene.add(sky);
 function noise(x,z){return Math.sin(x*.31+Math.sin(z*.17)*1.8)*.55+Math.cos(z*.27+x*.09)*.45}
+// Continuous explorable mainland: sculpted terrain, biome vertex colors and instanced vegetation
+function terrainHeight(x,z){
+ const rolling=Math.sin(x*.018+Math.sin(z*.012)*1.8)*3.2+Math.cos(z*.021-x*.009)*2.5;
+ const ridge=Math.pow(Math.max(0,Math.sin(x*.009+z*.006+Math.sin(z*.014)*2)),2)*7.5;
+ const valley=-Math.exp(-Math.pow((x-42)/48,2))*4.2;
+ const foothill=Math.sin(x*.052+z*.037)*.75+Math.cos(z*.061-x*.043)*.55;
+ return -22+rolling+ridge+valley+foothill;
+}
+{
+ const sx=760,sz=920,nx=160,nz=190,verts=[],colors=[],indices=[];
+ for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){
+  const x=(i/nx-.5)*sx,z=130-j/nz*sz,y=terrainHeight(x,z);
+  verts.push(x,y,z);
+  const detail=Math.sin(x*.19+z*.13)*.025+Math.cos(z*.23-x*.11)*.018;
+  let c;
+  if(y>-13)c=new THREE.Color(0x8da77c);
+  else if(y>-18)c=new THREE.Color(0x668b70);
+  else if(y>-23)c=new THREE.Color(0x587d70);
+  else c=new THREE.Color(0x637b78);
+  c.offsetHSL(0,0,detail);colors.push(c.r,c.g,c.b);
+ }
+ for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i,b=a+1,c=a+nx+1,d=c+1;indices.push(a,b,c,b,d,c)}
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.setIndex(indices);geo.computeVertexNormals();
+ const ground=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));ground.receiveShadow=true;ground.frustumCulled=false;scene.add(ground);
+ // Layered rock outcrops, instanced for mobile-friendly draw calls
+ const rockGeo=new THREE.DodecahedronGeometry(1,1),rockMesh=new THREE.InstancedMesh(rockGeo,stoneLight,420),dummy=new THREE.Object3D();
+ for(let i=0;i<420;i++){const x=(Math.random()-.5)*650,z=90-Math.random()*820,y=terrainHeight(x,z);const s=.45+Math.random()*2.1;dummy.position.set(x,y+s*.25,z);dummy.rotation.set(Math.random()*.6,Math.random()*6.28,Math.random()*.6);dummy.scale.set(s,s*(.55+Math.random()*.7),s*.85);dummy.updateMatrix();rockMesh.setMatrixAt(i,dummy.matrix)}
+ rockMesh.castShadow=true;rockMesh.receiveShadow=true;scene.add(rockMesh);
+ // Distant woodland: shared instanced trunks and canopies
+ const trunkGeo=new THREE.CylinderGeometry(.12,.22,2.5,7),crownGeo=new THREE.IcosahedronGeometry(1,1);
+ const trunks=new THREE.InstancedMesh(trunkGeo,bark,190),crowns=new THREE.InstancedMesh(crownGeo,leafB,190);
+ for(let i=0;i<190;i++){const x=(Math.random()-.5)*610,z=100-Math.random()*790,y=terrainHeight(x,z);const s=.75+Math.random()*.9;dummy.position.set(x,y+1.15*s,z);dummy.rotation.set(0,Math.random()*6.28,0);dummy.scale.set(s,s,s);dummy.updateMatrix();trunks.setMatrixAt(i,dummy.matrix);dummy.position.y=y+2.65*s;dummy.scale.set(1.35*s,1.65*s,1.35*s);dummy.updateMatrix();crowns.setMatrixAt(i,dummy.matrix)}
+ trunks.castShadow=true;crowns.castShadow=true;scene.add(trunks,crowns);
+}
 function island(x,y,z,scale,seed){
  const root=new THREE.Group();root.position.set(x,y,z);root.scale.setScalar(scale);scene.add(root);
  const n=42,verts=[],indices=[];
@@ -191,7 +225,7 @@ function animate(now){requestAnimationFrame(animate);const frameMs=Math.min(now-
  let moving=false;
  if(started){const forward=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch)),right=new THREE.Vector3(Math.cos(cameraYaw),0,Math.sin(cameraYaw));const dir=forward.clone().multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(dir.lengthSq()>1)dir.normalize();moving=dir.lengthSq()>.002;
  if(flying&&energy>0){if(moving)velocity.addScaledVector(dir,14*dt);if(input.boost){velocity.y+=12*dt;velocity.addScaledVector(forward,7*dt);energy=Math.max(0,energy-24*dt)}else{velocity.y-=2.4*dt;energy=Math.max(0,energy-5.5*dt)}if(velocity.length()>(input.boost?19:13))velocity.setLength(input.boost?19:13);velocity.multiplyScalar(Math.pow(input.boost?.994:.988,dt*60));if(energy<=0){flying=false;toast('能量耗尽，正在下降')}}else{if(moving){const gd=new THREE.Vector3(Math.sin(cameraYaw),0,-Math.cos(cameraYaw)).multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(gd.lengthSq()>1)gd.normalize();velocity.x=THREE.MathUtils.damp(velocity.x,gd.x*5.4,9,dt);velocity.z=THREE.MathUtils.damp(velocity.z,gd.z*5.4,9,dt)}else{velocity.x=THREE.MathUtils.damp(velocity.x,0,5,dt);velocity.z=THREE.MathUtils.damp(velocity.z,0,5,dt)}velocity.y-=15.5*dt;energy=Math.min(100,energy+7*dt)}
- player.position.addScaledVector(velocity,dt);if(player.position.y<0){player.position.y=0;if(velocity.y<0){landingPulse=Math.min(1,Math.abs(velocity.y)*.075);velocity.y=0}if(flying){flying=false;toast('已平稳降落')}}
+ player.position.addScaledVector(velocity,dt);const groundY=terrainHeight(player.position.x,player.position.z);if(player.position.y<groundY){player.position.y=groundY;if(velocity.y<0){landingPulse=Math.min(1,Math.abs(velocity.y)*.075);velocity.y=0}if(flying){flying=false;toast('已在山野平稳降落')}}
  for(const [x,y,z,r] of pads){const d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.8&&player.position.y>y-.7&&velocity.y<0){player.position.y=y+.12;velocity.y=0}}
  if(Math.hypot(velocity.x,velocity.z)>.25){yaw=Math.atan2(velocity.x,-velocity.z);player.rotation.y=THREE.MathUtils.damp(player.rotation.y,yaw,7,dt)}
  const side=velocity.x*Math.cos(cameraYaw)-velocity.z*Math.sin(cameraYaw);player.rotation.z=THREE.MathUtils.damp(player.rotation.z,clamp(-side*.035,-.28,.28),5,dt);player.rotation.x=THREE.MathUtils.damp(player.rotation.x,flying?-clamp(velocity.y*.025,-.18,.3):0,5,dt);flightBlend=THREE.MathUtils.damp(flightBlend,flying?1:0,4.5,dt);landingPulse=THREE.MathUtils.damp(landingPulse,0,7,dt);body.position.y=-landingPulse*.13;body.scale.y=1+landingPulse*.045;torso.rotation.x=THREE.MathUtils.damp(torso.rotation.x,flying?clamp(-velocity.y*.018,-.12,.22):0,4,dt);
