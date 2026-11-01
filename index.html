@@ -14,6 +14,7 @@
 #controls{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 22px);left:0;right:0;display:flex;align-items:end;justify-content:space-between;padding:0 23px;pointer-events:none}
 #stick{width:126px;height:126px;border:1px solid #ffffff8a;border-radius:50%;background:#ffffff1c;position:relative;pointer-events:auto;backdrop-filter:blur(8px)}
 #knob{width:49px;height:49px;position:absolute;left:38px;top:38px;border-radius:50%;background:#ffffffc9;box-shadow:0 4px 16px #315b6b55}
+#lookArea{position:fixed;right:0;top:16%;bottom:155px;width:48vw;z-index:1;pointer-events:auto;touch-action:none;background:transparent}#controls{z-index:2}#hint{padding:0 18px}
 .actions{display:flex;gap:13px;align-items:end;pointer-events:auto}.action{width:65px;height:65px;border-radius:50%;border:1px solid #fff9;background:#ffffff35;color:#fff;font-size:12px;backdrop-filter:blur(9px)}.action.primary{width:78px;height:78px;border:0;background:#fff;color:#527f91;font-weight:600}
 #start{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;text-align:center;color:white;background:linear-gradient(180deg,#6fabc5a8,#c8e4e8a8);backdrop-filter:blur(8px);padding:25px}.panel{max-width:340px}.eyebrow{font-size:10px;letter-spacing:5px}.title{font-size:46px;letter-spacing:10px;font-weight:300;margin:18px 0 9px}.sub{font-size:13px;line-height:2;opacity:.95}.startbtn{margin-top:29px;padding:15px 44px;border:0;border-radius:30px;background:#fff;color:#527f91;letter-spacing:2px;font-size:13px}
 #toast{position:absolute;bottom:190px;left:0;right:0;text-align:center;font-size:13px;opacity:0;transition:opacity .3s}
@@ -24,7 +25,7 @@
 </head>
 <body>
 <div id="loading">正在绘制云境…</div>
-<div id="hud"><div class="top"><div class="brand">C L O U D &nbsp; J O U R N E Y</div><div class="stats"><span id="count">✧ 0 / 12</span><br><span id="saved">云端旅程</span></div></div><div id="energyWrap"><div id="energy"></div></div><div id="hint">轻推摇杆漫步 · 按住飞行，穿过云海</div><div id="toast"></div><div id="controls"><div id="stick"><div id="knob"></div></div><div class="actions"><button class="action" id="jump">跃起</button><button class="action primary" id="fly">飞行</button></div></div></div>
+<div id="hud"><div class="top"><div class="brand">C L O U D &nbsp; J O U R N E Y</div><div class="stats"><span id="count">✧ 0 / 12</span><br><span id="saved">云端旅程</span></div></div><div id="energyWrap"><div id="energy"></div></div><div id="hint">左侧摇杆移动 · 右侧拖动视角 · 飞行时朝镜头方向滑翔</div><div id="toast"></div><div id="controls"><div id="stick"><div id="knob"></div></div><div id="lookArea" aria-label="拖动控制视角"></div><div class="actions"><button class="action" id="jump">跃起</button><button class="action primary" id="fly">飞行</button></div></div></div>
 <div id="start"><div class="panel"><div class="eyebrow">A QUIET WORLD ABOVE THE CLOUDS</div><div class="title">云 境</div><div class="sub">风从群山之间经过，微光在云层深处闪烁。<br>向前走，去遇见一片辽阔。</div><button class="startbtn" id="begin">开始旅程</button></div></div>
 <script type="module">
 import * as THREE from 'three';
@@ -90,31 +91,68 @@ player.position.set(0,0,3);
 const shardMat=new THREE.MeshStandardMaterial({color:0xffe7a8,emissive:0xffbb52,emissiveIntensity:2.4,roughness:.18,metalness:.15});
 const shards=[],shardPositions=[[-7,4,-13],[-24,12,-34],[22,18,-64],[-32,26,-98],[10,32,-129],[43,39,-165],[-17,46,-203],[18,55,-244],[4,5,-7],[28,21,-70],[-39,28,-103],[10,60,-250]];
 shardPositions.forEach((p,i)=>{let group=new THREE.Group();let gem=new THREE.Mesh(new THREE.OctahedronGeometry(.48,1),shardMat);gem.scale.set(.8,1.45,.8);group.add(gem);let halo=new THREE.Mesh(new THREE.TorusGeometry(.72,.025,6,40),new THREE.MeshBasicMaterial({color:0xffedc1,transparent:true,opacity:.75}));group.add(halo);let light=new THREE.PointLight(0xffd47b,1.5,9);group.add(light);group.position.set(...p);scene.add(group);shards.push({group,got:false,phase:i})});
-let got=JSON.parse(localStorage.getItem('cloud_got')||'[]');shards.forEach((s,i)=>{if(got.includes(i)){s.got=true;s.group.visible=false}});let count=got.length,energy=100,started=false,flying=false,velY=0,yaw=0;const input={x:0,y:0};let last=performance.now();
+let got=JSON.parse(localStorage.getItem('cloud_got')||'[]');shards.forEach((s,i)=>{if(got.includes(i)){s.got=true;s.group.visible=false}});let count=got.length,energy=100,started=false,flying=false,yaw=0,cameraYaw=0,cameraPitch=-.12;const velocity=new THREE.Vector3();const input={x:0,y:0};
+let last=performance.now();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function updateHud(){$('count').textContent='✧ '+count+' / 12';$('energy').style.width=energy+'%';$('saved').textContent=count===12?'所有微光已寻回':'已寻回 '+count+' 枚微光'}
 function toast(t){$('toast').textContent=t;$('toast').style.opacity=1;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').style.opacity=0,1800)}
 updateHud();
 const stick=$('stick'),knob=$('knob');let stickOn=false;
 function moveStick(e){const r=stick.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),l=Math.hypot(dx,dy),max=43;if(l>max){dx=dx/l*max;dy=dy/l*max}input.x=dx/max;input.y=dy/max;knob.style.transform='translate('+dx+'px,'+dy+'px)'}
 stick.addEventListener('pointerdown',e=>{stickOn=true;stick.setPointerCapture(e.pointerId);moveStick(e)});stick.addEventListener('pointermove',e=>{if(stickOn)moveStick(e)});function release(){stickOn=false;input.x=input.y=0;knob.style.transform='translate(0,0)'}stick.addEventListener('pointerup',release);stick.addEventListener('pointercancel',release);
-$('jump').addEventListener('pointerdown',e=>{e.preventDefault();if(player.position.y<.25&&!flying)velY=8.7});
-$('fly').addEventListener('pointerdown',e=>{e.preventDefault();flying=true});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('fly').addEventListener(ev,()=>flying=false));
+const lookArea=$('lookArea');let lookOn=false,lastLookX=0,lastLookY=0;
+lookArea.addEventListener('pointerdown',e=>{lookOn=true;lastLookX=e.clientX;lastLookY=e.clientY;lookArea.setPointerCapture(e.pointerId)});
+lookArea.addEventListener('pointermove',e=>{if(!lookOn)return;let dx=e.clientX-lastLookX,dy=e.clientY-lastLookY;lastLookX=e.clientX;lastLookY=e.clientY;cameraYaw-=dx*.006;cameraPitch=clamp(cameraPitch-dy*.005,-1.05,.82)});
+function stopLook(){lookOn=false}lookArea.addEventListener('pointerup',stopLook);lookArea.addEventListener('pointercancel',stopLook);
+$('jump').addEventListener('pointerdown',e=>{e.preventDefault();if(player.position.y<.3&&!flying)velocity.y=8.5});
+$('fly').addEventListener('pointerdown',e=>{e.preventDefault();flying=!flying;if(flying&&energy>0){toast('滑翔已开启 · 朝镜头方向飞行')}else{flying=false;toast('结束飞行')}}); 
 $('begin').onclick=()=>{$('start').style.display='none';started=true;toast('旅程开始了')};
 const pads=islands.map(p=>[p[0],p[1],p[2],p[3]*10]);
 function animate(now){requestAnimationFrame(animate);let dt=Math.min((now-last)/1000,.035);last=now;let t=now*.001;cloudUniforms.time.value=t;
  cloudPuffs.forEach((c,i)=>{c.position.x+=Math.sin(t*.12+i)*dt*.7;c.position.z+=Math.cos(t*.09+i)*dt*.35});
  shards.forEach(s=>{if(!s.got){s.group.rotation.y+=dt*.75;s.group.position.y+=Math.sin(t*1.6+s.phase)*dt*.12}});
  let moving=false;
- if(started){let f=-input.y,side=input.x;moving=Math.abs(f)+Math.abs(side)>.04;let speed=flying?11.5:5.7;let dx=side*Math.cos(yaw)+f*Math.sin(yaw),dz=-f*Math.cos(yaw)+side*Math.sin(yaw);if(moving){yaw=Math.atan2(dx,-dz);player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,yaw,.18);player.position.x+=dx*speed*dt;player.position.z+=dz*speed*dt}
- if(flying&&energy>0){velY=4.1;energy=Math.max(0,energy-12*dt)}else{velY-=16*dt;energy=Math.min(100,energy+4.8*dt)}player.position.y+=velY*dt;
- if(player.position.y<0){player.position.y=0;velY=0}
- for(const [x,y,z,r] of pads){let d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.8&&player.position.y>y-.7&&velY<0){player.position.y=y+1.35;velY=0}}
- shards.forEach((s,i)=>{if(!s.got&&player.position.distanceTo(s.group.position)<2.4){s.got=true;s.group.visible=false;got.push(i);count=got.length;localStorage.setItem('cloud_got',JSON.stringify(got));energy=Math.min(100,energy+20);updateHud();toast('✧ 收集到一枚微光')}});
+ if(started){
+   const forward=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch));
+   const right=new THREE.Vector3(Math.cos(cameraYaw),0,Math.sin(cameraYaw));
+   const moveDir=forward.clone().multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));
+   if(moveDir.lengthSq()>1)moveDir.normalize();
+   moving=moveDir.lengthSq()>.002;
+   if(flying&&energy>0){
+     const accel=19, maxSpeed=15;
+     if(moving)velocity.addScaledVector(moveDir,accel*dt);
+     if(velocity.length()>maxSpeed)velocity.setLength(maxSpeed);
+     velocity.multiplyScalar(Math.pow(.986,dt*60));
+     energy=Math.max(0,energy-10*dt);
+     if(energy<=0){flying=false;toast('能量耗尽，正在下降')}
+   }else{
+     if(moving){
+       const groundDir=new THREE.Vector3(Math.sin(cameraYaw),0,-Math.cos(cameraYaw)).multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));
+       if(groundDir.lengthSq()>1)groundDir.normalize();
+       velocity.x=THREE.MathUtils.damp(velocity.x,groundDir.x*5.5,10,dt);
+       velocity.z=THREE.MathUtils.damp(velocity.z,groundDir.z*5.5,10,dt);
+     }else{velocity.x=THREE.MathUtils.damp(velocity.x,0,5,dt);velocity.z=THREE.MathUtils.damp(velocity.z,0,5,dt)}
+     velocity.y-=16*dt;
+     energy=Math.min(100,energy+7*dt);
+   }
+   player.position.addScaledVector(velocity,dt);
+   if(player.position.y<0){player.position.y=0;velocity.y=0;if(flying){flying=false;toast('已平稳降落')}}
+   for(const [x,y,z,r] of pads){let d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.8&&player.position.y>y-.7&&velocity.y<0){player.position.y=y+1.35;velocity.y=0}}
+   if(Math.hypot(velocity.x,velocity.z)>.25){
+     yaw=Math.atan2(velocity.x,-velocity.z);
+     player.rotation.y=THREE.MathUtils.damp(player.rotation.y,yaw,7,dt);
+   }
+   const localSide=velocity.x*Math.cos(cameraYaw)-velocity.z*Math.sin(cameraYaw);
+   player.rotation.z=THREE.MathUtils.damp(player.rotation.z,clamp(-localSide*.035,-.28,.28),5,dt);
+   player.rotation.x=THREE.MathUtils.damp(player.rotation.x,flying?-clamp(velocity.y*.025,-.18,.3):0,5,dt);
+   if(flying&&energy>0){} 
+   shards.forEach((s,i)=>{if(!s.got&&player.position.distanceTo(s.group.position)<2.4){s.got=true;s.group.visible=false;got.push(i);count=got.length;localStorage.setItem('cloud_got',JSON.stringify(got));energy=Math.min(100,energy+20);updateHud();toast('✧ 收集到一枚微光')}});
+   updateHud();
  }
  // cloth deformation, wind and glide lift
- const pos=cape.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=capeBase[i*3],y=capeBase[i*3+1];let flutter=Math.sin(t*4+y*2+x*3)*(.035+Math.abs(y)*.045);pos.setZ(i,capeBase[i*3+2]+flutter+(flying?Math.max(0,-y)*.22:0));}pos.needsUpdate=true;cape.geometry.computeVertexNormals();cape.rotation.x=flying?-.13:Math.sin(t*2)*.025;
+ const pos=cape.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=capeBase[i*3],y=capeBase[i*3+1];let flutter=Math.sin(t*4+y*2+x*3)*(.035+Math.abs(y)*.045);pos.setZ(i,capeBase[i*3+2]+flutter+(flying?Math.max(0,-y)*.42:0));}pos.needsUpdate=true;cape.geometry.computeVertexNormals();cape.rotation.x=flying?-.13:Math.sin(t*2)*.025;
  torso.rotation.z=moving?Math.sin(t*9)*.035:0;glow.intensity=.8+Math.sin(t*3)*.25;
- let target=new THREE.Vector3(player.position.x,player.position.y+3.2,player.position.z+8.5);camera.position.lerp(target,.065);camera.lookAt(player.position.x,player.position.y+1.25,player.position.z-3.5);
+ const camForward=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch));let target=player.position.clone().add(new THREE.Vector3(0,2.8,0)).addScaledVector(camForward,-9.5);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.clone().add(new THREE.Vector3(0,1.45,0)).addScaledVector(camForward,5));
  renderer.render(scene,camera);
 }
 requestAnimationFrame(animate);
