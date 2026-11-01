@@ -70,7 +70,7 @@ const player=new THREE.Group();scene.add(player);
 const robe=mat(0xdce7e0,.68),ivory=mat(0xf0eee2,.62),hoodMat=mat(0xbdd4d1,.56),dark=mat(0x334b52,.48),gold=mat(0xd8b879,.34,.25),leather=mat(0x75685a,.9);
 const glowMat=new THREE.MeshStandardMaterial({color:0xffedc1,emissive:0xffc56d,emissiveIntensity:2.5,roughness:.24});
 function mesh(parent,geo,material,pos,scale,rot){const m=new THREE.Mesh(geo,material);if(pos)m.position.set(...pos);if(scale)m.scale.set(...scale);if(rot)m.rotation.set(...rot);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
-const body=new THREE.Group();player.add(body);
+const body=new THREE.Group();player.add(body);player.position.set(0,2.55,4);
 const robeGeo=new THREE.LatheGeometry([new THREE.Vector2(.2,0),new THREE.Vector2(.25,.12),new THREE.Vector2(.31,.42),new THREE.Vector2(.4,.86),new THREE.Vector2(.38,1.2),new THREE.Vector2(.3,1.5),new THREE.Vector2(.22,1.67)],32);
 const torso=mesh(body,robeGeo,robe,[0,.25,0]);mesh(body,new THREE.LatheGeometry([new THREE.Vector2(.18,0),new THREE.Vector2(.22,.45),new THREE.Vector2(.2,.9),new THREE.Vector2(.16,1.25)],24),ivory,[0,.32,-.018]);
 mesh(body,new THREE.TorusGeometry(.31,.04,10,40),gold,[0,.69,0],[1,1,.8],[Math.PI/2,0,0]);
@@ -108,7 +108,7 @@ look.addEventListener('pointermove',e=>{if(!looking)return;const dx=e.clientX-lx
 function endLook(){looking=false}look.addEventListener('pointerup',endLook);look.addEventListener('pointercancel',endLook);
 $('jump').addEventListener('pointerdown',e=>{e.preventDefault();if(player.position.y<.35&&!flying)velocity.y=8.4});
 $('fly').addEventListener('pointerdown',e=>{e.preventDefault();if(!flying&&energy>2){flying=true;toast('滑翔已开启 · 感受风的方向')}else{flying=false;toast('收起披风')}});$('begin').onclick=()=>{$('start').style.display='none';$('hud').classList.add('active');started=true;toast('旅程开始了')};
-const pads=islandData.map(p=>[p[0],p[1],p[2],p[3]*10]);
+const pads=islandData.map(p=>[p[0],p[1]+2*p[3],p[2],p[3]*10]);
 function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last)/1000,.035);last=now;const t=now*.001;
  cloudGroups.forEach((g,i)=>{g.position.x+=Math.sin(t*.11+i)*dt*.55;g.position.z+=Math.cos(t*.08+i)*dt*.24});
  shards.forEach(s=>{if(!s.got){s.group.rotation.y+=dt*.7;s.group.position.y+=Math.sin(t*1.7+s.phase)*dt*.11}});
@@ -116,7 +116,7 @@ function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-last
  if(started){const forward=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch)),right=new THREE.Vector3(Math.cos(cameraYaw),0,Math.sin(cameraYaw));const dir=forward.clone().multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(dir.lengthSq()>1)dir.normalize();moving=dir.lengthSq()>.002;
  if(flying&&energy>0){if(moving)velocity.addScaledVector(dir,18*dt);if(velocity.length()>15)velocity.setLength(15);velocity.multiplyScalar(Math.pow(.986,dt*60));energy=Math.max(0,energy-9.5*dt);if(energy<=0){flying=false;toast('能量耗尽，正在下降')}}else{if(moving){const gd=new THREE.Vector3(Math.sin(cameraYaw),0,-Math.cos(cameraYaw)).multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(gd.lengthSq()>1)gd.normalize();velocity.x=THREE.MathUtils.damp(velocity.x,gd.x*5.4,9,dt);velocity.z=THREE.MathUtils.damp(velocity.z,gd.z*5.4,9,dt)}else{velocity.x=THREE.MathUtils.damp(velocity.x,0,5,dt);velocity.z=THREE.MathUtils.damp(velocity.z,0,5,dt)}velocity.y-=15.5*dt;energy=Math.min(100,energy+7*dt)}
  player.position.addScaledVector(velocity,dt);if(player.position.y<0){player.position.y=0;velocity.y=0;if(flying){flying=false;toast('已平稳降落')}}
- for(const [x,y,z,r] of pads){const d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.8&&player.position.y>y-.7&&velocity.y<0){player.position.y=y+1.35;velocity.y=0}}
+ for(const [x,y,z,r] of pads){const d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.8&&player.position.y>y-.7&&velocity.y<0){player.position.y=y+.12;velocity.y=0}}
  if(Math.hypot(velocity.x,velocity.z)>.25){yaw=Math.atan2(velocity.x,-velocity.z);player.rotation.y=THREE.MathUtils.damp(player.rotation.y,yaw,7,dt)}
  const side=velocity.x*Math.cos(cameraYaw)-velocity.z*Math.sin(cameraYaw);player.rotation.z=THREE.MathUtils.damp(player.rotation.z,clamp(-side*.035,-.28,.28),5,dt);player.rotation.x=THREE.MathUtils.damp(player.rotation.x,flying?-clamp(velocity.y*.025,-.18,.3):0,5,dt);
  shards.forEach((s,i)=>{if(!s.got&&player.position.distanceTo(s.group.position)<2.35){s.got=true;s.group.visible=false;got.push(i);count=got.length;try{localStorage.setItem('cloud_got',JSON.stringify(got))}catch{}energy=Math.min(100,energy+20);toast('✧ 收集到一枚微光')}});updateHud()}
