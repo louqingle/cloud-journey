@@ -14,11 +14,27 @@
 #start{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;text-align:center;color:white;background:linear-gradient(180deg,#4d8db2a6 0%,#b9dce4a8 58%,#e8d8c4a8 100%);padding:25px}.panel{max-width:350px}.eyebrow{font-size:9px;letter-spacing:5px;opacity:.9}.title{font-size:54px;letter-spacing:13px;font-weight:250;margin:20px 0 8px;text-shadow:0 8px 30px #426b7d55}.sub{font-size:12px;line-height:2.1;letter-spacing:1px;opacity:.96}.startbtn{margin-top:32px;padding:15px 48px;border:1px solid #ffffffc9;border-radius:30px;background:#ffffffed;color:#557c8a;letter-spacing:3px;font-size:12px}
 .toast{position:absolute;bottom:175px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:2px;opacity:0;transition:opacity .35s}#loading{position:fixed;inset:0;display:grid;place-items:center;color:white;z-index:9;font-size:11px;letter-spacing:4px;background:linear-gradient(#6dabc5,#d8e9e5)}
 @media(min-width:700px){.controls{max-width:900px;margin:auto}.top{max-width:1000px;left:50%;right:auto;width:calc(100% - 48px);transform:translateX(-50%)}.look{width:42vw}}
+
+/* Landscape-first mobile layout */
+#rotateHint{display:none;position:fixed;inset:0;z-index:8;align-items:center;justify-content:center;text-align:center;padding:28px;background:linear-gradient(145deg,#183e55ed,#628fa0ed);color:#fff;letter-spacing:2px}
+.rotate-card{max-width:270px}.rotate-icon{font-size:42px;margin-bottom:18px;display:block;animation:turnphone 2.4s ease-in-out infinite}.rotate-title{font-size:18px;margin-bottom:10px}.rotate-copy{font-size:11px;line-height:1.9;opacity:.8}
+@keyframes turnphone{0%,100%{transform:rotate(0)}50%{transform:rotate(90deg)}}
+@media (orientation:portrait) and (max-width:700px){#rotateHint{display:flex}#start{padding:18px}.title{font-size:44px}.sub{font-size:11px}}
+@media (orientation:landscape) and (max-height:500px){
+ .top{top:calc(env(safe-area-inset-top) + 9px);left:24px;right:24px}
+ .brand{font-size:9px}.stats{font-size:10px}.energy-wrap{top:calc(env(safe-area-inset-top) + 38px);right:24px;width:95px}.hint{top:calc(env(safe-area-inset-top) + 54px);font-size:9px}
+ .controls{bottom:calc(env(safe-area-inset-bottom) + 10px);padding:0 24px}
+ .stick{width:94px;height:94px}.knob{width:38px;height:38px;left:27px;top:27px}
+ .look{top:12%;bottom:112px;width:48vw}
+ .actions{gap:9px}.action{width:49px;height:49px;font-size:10px}.action.primary{width:62px;height:62px}
+ .toast{bottom:120px;font-size:11px}
+ #start .title{font-size:44px;margin:10px 0 4px}#start .sub{line-height:1.7}#start .startbtn{margin-top:18px;padding:12px 38px}
+}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 </head>
 <body>
-<div id="loading">云层正在苏醒</div>
+<div id="loading">云层正在苏醒</div><div id="rotateHint"><div class="rotate-card"><span class="rotate-icon">▱</span><div class="rotate-title">请将手机横过来</div><div class="rotate-copy">云境为横屏探索而设计<br>旋转设备，获得完整视野与操控空间</div></div></div>
 <div id="hud"><div class="top"><div class="brand">C L O U D &nbsp; J O U R N E Y</div><div class="stats"><span id="count">✧ 0 / 12</span><br><span id="saved">寻找散落的微光</span></div></div><div class="energy-wrap"><div class="energy" id="energy"></div></div><div class="hint">摇杆移动 · 右侧滑动调整视角 · 点击飞行，迎着风去远方</div><div class="toast" id="toast"></div><div class="controls"><div class="stick" id="stick"><div class="knob" id="knob"></div></div><div class="look" id="look" aria-label="拖动调整视角"></div><div class="actions"><button class="action" id="jump">跃起</button><button class="action primary" id="fly">起飞</button></div></div></div>
 <div id="start"><div class="panel"><div class="eyebrow">A QUIET WORLD ABOVE THE CLOUDS</div><div class="title">云 境</div><div class="sub">越过云海，寻找失落的微光。<br>风会记得每一次飞翔。</div><button class="startbtn" id="begin">进入云境</button></div></div>
 <script type="module">
