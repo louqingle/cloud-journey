@@ -84,6 +84,14 @@ const torso=addMesh(player,robeGeo,robeMat,[0,.23,0]);
 const innerTunic=addMesh(player,new THREE.CylinderGeometry(.255,.34,.96,16,1,true),robeLight,[0,.72,-.012]);
 const belt=addMesh(player,new THREE.TorusGeometry(.315,.045,8,32),goldMat,[0,.67,0],[1,1,.82],[Math.PI/2,0,0]);
 const clasp=addMesh(player,new THREE.OctahedronGeometry(.09,0),glowMat,[0,.68,-.29],[.75,1.1,.45],[0,0,Math.PI/4]);
+// Fine embroidered chest crest and layered collar ornaments
+const crestGroup=new THREE.Group();crestGroup.position.set(0,1.28,-.315);player.add(crestGroup);
+addMesh(crestGroup,new THREE.TorusGeometry(.105,.018,7,28),goldMat,[0,0,0],[.72,1.35,.45],[0,0,0]);
+addMesh(crestGroup,new THREE.OctahedronGeometry(.075,1),glowMat,[0,-.015,-.018],[.62,1.25,.42],[0,0,Math.PI/4]);
+for(let s of [-1,1]){
+ addMesh(player,new THREE.SphereGeometry(.045,10,8),goldMat,[s*.255,1.62,-.245],[.8,.8,.5]);
+ addMesh(player,new THREE.TorusGeometry(.055,.012,6,18),goldMat,[s*.255,1.61,-.27],[1,.8,.4],[Math.PI/2,0,0]);
+}
 // neck and sculpted hood
 addMesh(player,new THREE.CylinderGeometry(.13,.16,.22,12),skinMat,[0,1.72,0]);
 const head=addMesh(player,new THREE.SphereGeometry(.34,28,22),skinMat,[0,2.02,-.035],[.92,1.05,.82]);
@@ -121,8 +129,16 @@ for(const side of [-1,1]){
 const capeMat=new THREE.MeshStandardMaterial({color:0x9fc4c2,roughness:.62,side:THREE.DoubleSide,metalness:.035});
 const capeGeo=new THREE.PlaneGeometry(1.72,2.18,12,16);const cape=new THREE.Mesh(capeGeo,capeMat);cape.position.set(0,1.02,.36);cape.castShadow=true;player.add(cape);
 const capeBase=capeGeo.attributes.position.array.slice();
-const capeEdgeMat=new THREE.MeshStandardMaterial({color:0xe6d5a8,roughness:.55,metalness:.18});
-for(const side of [-1,1]){const strip=addMesh(player,new THREE.BoxGeometry(.035,1.72,.035),capeEdgeMat,[side*.79,.95,.39],[1,1,1],[.12,0,side*.04])}
+// Fine gold piping follows the actual moving cloth edge instead of floating beside it
+const capeEdgeMat=new THREE.LineBasicMaterial({color:0xf0d9a5,transparent:true,opacity:.96});
+const capeTrims=[];
+for(const side of [-1,1]){
+ const edgePositions=new Float32Array(17*3);
+ const edgeGeo=new THREE.BufferGeometry();
+ edgeGeo.setAttribute('position',new THREE.BufferAttribute(edgePositions,3));
+ const trim=new THREE.Line(edgeGeo,capeEdgeMat);trim.frustumCulled=false;cape.add(trim);
+ capeTrims.push({trim,side});
+}
 const satchel=addMesh(player,new THREE.BoxGeometry(.32,.36,.2),barkMat,[.38,.85,.18],[1,1,1],[0,0,-.12]);
 addMesh(player,new THREE.TorusGeometry(.1,.025,6,18),goldMat,[.38,.86,.065],[1,1,.8],[Math.PI/2,0,0]);
 const glow=new THREE.PointLight(0xffdfa0,1.25,10);glow.position.set(0,2,0);player.add(glow);
@@ -189,7 +205,30 @@ function animate(now){requestAnimationFrame(animate);let dt=Math.min((now-last)/
    updateHud();
  }
  // cloth deformation, wind and glide lift
- const pos=cape.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=capeBase[i*3],y=capeBase[i*3+1];let flutter=Math.sin(t*4+y*2+x*3)*(.035+Math.abs(y)*.045);pos.setZ(i,capeBase[i*3+2]+flutter+(flying?Math.max(0,-y)*.42:0));}pos.needsUpdate=true;cape.geometry.computeVertexNormals();cape.rotation.x=flying?-.13:Math.sin(t*2)*.025;
+ const pos=cape.geometry.attributes.position;
+ for(let i=0;i<pos.count;i++){
+   const x=capeBase[i*3],y=capeBase[i*3+1];
+   const edge=Math.abs(x)/.86,tail=Math.max(0,-y);
+   const breeze=Math.sin(t*2.35+y*1.7+x*2.1)*(.035+tail*.075);
+   const ripple=Math.sin(t*5.2+y*5.5+x*3.2)*(.012+tail*.025);
+   const lift=flying?tail*(.34+Math.max(0,velocity.z*-1)*.018):0;
+   pos.setZ(i,capeBase[i*3+2]+breeze+ripple+lift+edge* Math.sin(t*1.8+y*2)*.025);
+ }
+ pos.needsUpdate=true;cape.geometry.computeVertexNormals();
+ // Rebuild both fine metallic edge lines from the deformed boundary vertices
+ for(const item of capeTrims){
+   const arr=item.trim.geometry.attributes.position.array;
+   for(let row=0;row<=16;row++){
+     let best=-1,bestY=Infinity;
+     for(let col=0;col<=12;col++){
+       const idx=row*13+col, x=capeBase[idx*3], y=capeBase[idx*3+1];
+       if((item.side<0?x<-.84:x>.84)&&y<bestY){best=idx;bestY=y}
+     }
+     if(best>=0){arr[row*3]=pos.getX(best);arr[row*3+1]=pos.getY(best);arr[row*3+2]=pos.getZ(best)+.012;}
+   }
+   item.trim.geometry.attributes.position.needsUpdate=true;
+ }
+ cape.rotation.x=flying?-.13:Math.sin(t*2)*.025;
  const gait=moving&&!flying?Math.sin(t*10)*.34:0;legRigs[0].rotation.x=gait;legRigs[1].rotation.x=-gait;armRigs[0].rotation.x=flying?-.82:(moving?-gait*.7:.04);armRigs[1].rotation.x=flying?-.82:(moving?gait*.7:.04);armRigs[0].rotation.z=THREE.MathUtils.damp(armRigs[0].rotation.z,flying?-.42:-.08,5,dt);armRigs[1].rotation.z=THREE.MathUtils.damp(armRigs[1].rotation.z,flying?.42:.08,5,dt);torso.rotation.z=THREE.MathUtils.damp(torso.rotation.z,moving?Math.sin(t*9)*.025:0,6,dt);shoulder.rotation.z=flying?Math.sin(t*5)*.025:0;glow.intensity=1+Math.sin(t*3)*.28;
  const camForward=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch));let target=player.position.clone().add(new THREE.Vector3(0,2.8,0)).addScaledVector(camForward,-9.5);camera.position.lerp(target,1-Math.pow(.001,dt));camera.lookAt(player.position.clone().add(new THREE.Vector3(0,1.45,0)).addScaledVector(camForward,5));
  renderer.render(scene,camera);
