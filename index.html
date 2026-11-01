@@ -75,13 +75,43 @@ function island(x,y,z,scale,seed){
 }
 const islandData=[[0,0,0,1.32],[-25,10,-36,.78],[24,16,-70,1.02],[-35,24,-108,.88],[9,31,-145,1.05],[45,39,-184,.9],[-19,48,-225,1.02],[18,59,-270,1.22]];
 islandData.forEach((p,i)=>island(...p,i*7));
-const cloudMat=new THREE.MeshStandardMaterial({color:0xf3fbfd,roughness:1,transparent:true,opacity:.7,depthWrite:false});
+// Procedural volumetric cloud banks: layered lobes with animated 3D noise and soft sunlit edges
+const cloudMat=new THREE.ShaderMaterial({
+ transparent:true,depthWrite:false,side:THREE.FrontSide,
+ uniforms:{uTime:{value:0},uSun:{value:new THREE.Vector3(-.55,.72,.42).normalize()}},
+ vertexShader:`varying vec3 vP; varying vec3 vN; void main(){vP=position;vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+ fragmentShader:`precision highp float; varying vec3 vP; varying vec3 vN; uniform float uTime; uniform vec3 uSun;
+ float hash(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+ float noise3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+ float fbm(vec3 p){float v=0.,a=.55;for(int i=0;i<4;i++){v+=a*noise3(p);p*=2.03;a*=.5;}return v;}
+ void main(){vec3 p=vP*1.35+vec3(uTime*.012,0.,uTime*.006);float n=fbm(p)+.28*fbm(p*2.2);float shell=1.-smoothstep(.48,1.0,length(vP));float density=smoothstep(.32,.76,n+shell*.56);if(density<.08)discard;float light=max(dot(normalize(vN),normalize(uSun)),0.);float rim=pow(1.-abs(dot(normalize(vN),normalize(vec3(.0,.2,1.)))),2.);vec3 col=mix(vec3(.56,.72,.79),vec3(1.0,.985,.91),clamp(.48+light*.48+rim*.18,0.,1.));gl_FragColor=vec4(col,density*.48);}`
+});
 const cloudGroups=[];
-for(let i=0;i<105;i++){const g=new THREE.Group();for(let j=0;j<5;j++){const puff=new THREE.Mesh(new THREE.SphereGeometry(2.1+Math.random()*3.2,24,16),cloudMat);puff.position.set((Math.random()-.5)*8,(Math.random()-.5)*1.4,(Math.random()-.5)*6);puff.scale.y=.48;g.add(puff)}g.position.set((Math.random()-.5)*245,-9+Math.random()*43,-Math.random()*330);scene.add(g);cloudGroups.push(g)}
-// layered atmospheric cloud banks
-for(let i=0;i<7;i++){const bank=new THREE.Mesh(new THREE.PlaneGeometry(240,150),new THREE.MeshBasicMaterial({color:i%2?0xd5edf0:0xe7f2ed,transparent:true,opacity:.12,depthWrite:false,side:THREE.DoubleSide}));bank.rotation.x=-Math.PI/2;bank.position.set((i%3-1)*75,-12+i*3,-35-i*52);scene.add(bank)}
-// distant mountain silhouettes
-for(let row=0;row<3;row++){for(let i=0;i<15;i++){const h=18+Math.random()*34,m=new THREE.Mesh(new THREE.ConeGeometry(12+Math.random()*9,h,7),new THREE.MeshStandardMaterial({color:[0x769eae,0x91b6bd,0xa9c9c9][row],roughness:1,transparent:true,opacity:.52}));m.position.set((i-7)*28+(row%2)*12, -1+h*.42,-150-row*72-Math.random()*20);scene.add(m)}}
+for(let i=0;i<34;i++){
+ const g=new THREE.Group();const width=10+Math.random()*13;
+ for(let j=0;j<7;j++){const puff=new THREE.Mesh(new THREE.SphereGeometry(1,32,22),cloudMat);const sc=1.8+Math.random()*3.8;puff.scale.set(sc*1.25,sc*.48,sc*.92);puff.position.set((Math.random()-.5)*width,(Math.random()-.5)*2.8,(Math.random()-.5)*width*.72);g.add(puff)}
+ g.position.set((Math.random()-.5)*255,-12+Math.random()*48,-Math.random()*355);g.userData.baseY=g.position.y;scene.add(g);cloudGroups.push(g);
+}
+// Continuous procedural mountain ridges, with layered peaks, foothills and distance haze
+function ridgeNoise(x,z){return Math.sin(x*.13+Math.sin(z*.07)*1.7)*.48+Math.cos(z*.19-x*.045)*.32+Math.sin(x*.34+z*.11)*.14+Math.cos(x*.055-z*.16)*.22}
+const mountainMats=[0x627f91,0x829eaa,0xa9c0c3].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.96,metalness:0,vertexColors:true,fog:true}));
+for(let row=0;row<3;row++){
+ const width=340-row*24,depth=100,segX=100,segZ=30,verts=[],colors=[],indices=[];
+ const baseZ=-172-row*83,baseY=-13+row*2.8;
+ for(let z=0;z<=segZ;z++)for(let x=0;x<=segX;x++){
+  const u=x/segX,v=z/segZ,wx=(u-.5)*width,wz=v*depth;
+  const broad=ridgeNoise(wx+row*43,wz+row*71);
+  const ridged=1.-Math.abs(Math.sin(wx*.075+Math.sin(wz*.06)*2.1+row));
+  const peak=Math.pow(Math.max(0,ridged),2.2)*(15-row*3);
+  const h=baseY+Math.max(0,broad+0.45)*(10-row*1.6)+peak*(1-v*.48);
+  verts.push(wx,h,baseZ-wz);
+  const shade=.68+Math.max(0,broad)*.22+peak*.009;
+  colors.push(shade*(.76+row*.08),shade*(.88+row*.05),shade);
+ }
+ for(let z=0;z<segZ;z++)for(let x=0;x<segX;x++){const a=z*(segX+1)+x,b=a+1,c=a+segX+1,d=c+1;indices.push(a,c,b,b,c,d)}
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.setIndex(indices);geo.computeVertexNormals();
+ const m=new THREE.Mesh(geo,mountainMats[row]);m.receiveShadow=true;scene.add(m);
+}
 // luminous waterfalls below floating landmasses
 for(let i=0;i<5;i++){const fall=new THREE.Mesh(new THREE.PlaneGeometry(2.2,19+Math.random()*10),new THREE.MeshBasicMaterial({color:0xc5f0f2,transparent:true,opacity:.42,side:THREE.DoubleSide}));fall.position.set((i%2?1:-1)*8, -7, -26-i*49);scene.add(fall)}
 // ancient floating stone rings, a distant navigation landmark
@@ -156,7 +186,7 @@ $('fly').addEventListener('pointerdown',e=>{e.preventDefault();if(!flying&&energ
 const boostBtn=$('boost');boostBtn.addEventListener('pointerdown',e=>{e.preventDefault();input.boost=true;boostBtn.setPointerCapture(e.pointerId)});function stopBoost(){input.boost=false}boostBtn.addEventListener('pointerup',stopBoost);boostBtn.addEventListener('pointercancel',stopBoost);boostBtn.addEventListener('lostpointercapture',stopBoost);$('begin').onclick=()=>{$('start').style.display='none';$('hud').classList.add('active');started=true;toast('旅程开始了')};
 const pads=islandData.map(p=>[p[0],p[1]+2*p[3],p[2],p[3]*10]);
 function animate(now){requestAnimationFrame(animate);const frameMs=Math.min(now-last,50);const dt=Math.min(frameMs/1000,.035);last=now;const t=now*.001;frameNo++;fpsFrames++;fpsTotal+=frameMs;if(fpsFrames>=45){const avg=fpsTotal/fpsFrames;fpsFrames=0;fpsTotal=0;if(avg>12.5&&renderScale>1.05){renderScale=Math.max(1.05,renderScale-.1);renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight,false);composer.setPixelRatio(renderScale);composer.setSize(innerWidth,innerHeight)}else if(avg<8.8&&renderScale<Math.min(devicePixelRatio,1.65)){renderScale=Math.min(Math.min(devicePixelRatio,1.65),renderScale+.05);renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight,false);composer.setPixelRatio(renderScale);composer.setSize(innerWidth,innerHeight)}}
- cloudGroups.forEach((g,i)=>{g.position.x+=Math.sin(t*.11+i)*dt*.55;g.position.z+=Math.cos(t*.08+i)*dt*.24});
+ cloudMat.uniforms.uTime.value=t;cloudGroups.forEach((g,i)=>{g.position.x+=Math.sin(t*.035+i)*dt*.22;g.position.z+=Math.cos(t*.025+i)*dt*.12;g.position.y=g.userData.baseY+Math.sin(t*.18+i*.7)*.7});
  shards.forEach(s=>{if(!s.got){s.group.rotation.y+=dt*.7;s.group.position.y+=Math.sin(t*1.7+s.phase)*dt*.11}});
  let moving=false;
  if(started){const forward=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch)),right=new THREE.Vector3(Math.cos(cameraYaw),0,Math.sin(cameraYaw));const dir=forward.clone().multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(dir.lengthSq()>1)dir.normalize();moving=dir.lengthSq()>.002;
