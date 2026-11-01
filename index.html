@@ -57,6 +57,10 @@ const mat=(c,r=.85,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,met
 const stone=mat(0x718d8b,1),stoneLight=mat(0x9baea2,.92),bark=mat(0x756b59,1),leafA=mat(0x5f8d7d,1),leafB=mat(0x82a88b,1),leafC=mat(0xa8bd91,1);
 const sky=new THREE.Mesh(new THREE.SphereGeometry(700,32,20),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color(0x397ca7)},mid:{value:new THREE.Color(0x9ccbd9)},low:{value:new THREE.Color(0xf4d9bd)}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top,mid,low;void main(){float h=normalize(p).y;vec3 c=mix(low,mid,smoothstep(-.3,.2,h));c=mix(c,top,smoothstep(.08,.82,h));gl_FragColor=vec4(c,1.);}'}));scene.add(sky);
 function noise(x,z){return Math.sin(x*.31+Math.sin(z*.17)*1.8)*.55+Math.cos(z*.27+x*.09)*.45}
+// Procedural ground and foliage materials (shared by instanced meshes)
+const stoneLight=new THREE.MeshStandardMaterial({color:0x78827e,roughness:1});
+const bark=new THREE.MeshStandardMaterial({color:0x594b3c,roughness:1});
+const leafB=new THREE.MeshStandardMaterial({color:0x557b68,roughness:1});
 // Continuous explorable mainland: sculpted terrain, biome vertex colors and instanced vegetation
 function terrainHeight(x,z){
  const rolling=Math.sin(x*.018+Math.sin(z*.012)*1.8)*3.2+Math.cos(z*.021-x*.009)*2.5;
@@ -80,7 +84,13 @@ function terrainHeight(x,z){
  }
  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i,b=a+1,c=a+nx+1,d=c+1;indices.push(a,b,c,b,d,c)}
  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geo.setIndex(indices);geo.computeVertexNormals();
- const ground=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,metalness:0}));ground.receiveShadow=true;ground.frustumCulled=false;scene.add(ground);
+ // High-frequency procedural earth texture: grass grain, soil flecks and exposed stone
+ const texCanvas=document.createElement('canvas');texCanvas.width=512;texCanvas.height=512;const tx=texCanvas.getContext('2d');
+ tx.fillStyle='#718d70';tx.fillRect(0,0,512,512);
+ for(let k=0;k<26000;k++){const x=Math.random()*512,y=Math.random()*512,r=.35+Math.random()*2.1;tx.globalAlpha=.08+Math.random()*.2;tx.fillStyle=Math.random()>.72?'#c1b99a':Math.random()>.48?'#344f42':'#a4b28a';tx.beginPath();tx.ellipse(x,y,r,r*(.35+Math.random()),Math.random()*3.14,0,Math.PI*2);tx.fill()}
+ tx.globalAlpha=1;const groundTex=new THREE.CanvasTexture(texCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(18,22);groundTex.colorSpace=THREE.SRGBColorSpace;groundTex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+ const groundMat=new THREE.MeshStandardMaterial({vertexColors:true,map:groundTex,roughness:1,metalness:0});
+ const ground=new THREE.Mesh(geo,groundMat);ground.receiveShadow=true;ground.frustumCulled=false;scene.add(ground);
  // Layered rock outcrops, instanced for mobile-friendly draw calls
  const rockGeo=new THREE.DodecahedronGeometry(1,1),rockMesh=new THREE.InstancedMesh(rockGeo,stoneLight,420),dummy=new THREE.Object3D();
  for(let i=0;i<420;i++){const x=(Math.random()-.5)*650,z=90-Math.random()*820,y=terrainHeight(x,z);const s=.45+Math.random()*2.1;dummy.position.set(x,y+s*.25,z);dummy.rotation.set(Math.random()*.6,Math.random()*6.28,Math.random()*.6);dummy.scale.set(s,s*(.55+Math.random()*.7),s*.85);dummy.updateMatrix();rockMesh.setMatrixAt(i,dummy.matrix)}
