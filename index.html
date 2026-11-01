@@ -1,97 +1,123 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#8bc8e8"><title>云境 · Cloud Journey</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#9fcce0">
+<title>云境 · Cloud Journey</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#8bc8e8;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;touch-action:none}canvas{display:block}
-#hud{position:fixed;inset:0;pointer-events:none;color:white;text-shadow:0 2px 12px #24516a99}
-.top{position:absolute;top:calc(env(safe-area-inset-top) + 14px);left:18px;right:18px;display:flex;justify-content:space-between;align-items:flex-start}
-.brand{font-size:12px;letter-spacing:4px;font-weight:700;opacity:.9}.stats{font-size:12px;text-align:right;line-height:1.8}
-#energyWrap{position:absolute;top:calc(env(safe-area-inset-top) + 62px);right:18px;width:112px;height:5px;background:#ffffff55;border-radius:9px;overflow:hidden}#energy{height:100%;width:100%;background:#fff;border-radius:9px;transition:width .15s}
-#hint{position:absolute;top:calc(env(safe-area-inset-top) + 86px);left:0;right:0;text-align:center;font-size:12px;letter-spacing:1px;opacity:.9}
-#controls{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 24px);left:0;right:0;height:142px;display:flex;justify-content:space-between;align-items:end;padding:0 24px;pointer-events:none}
-#stick{width:124px;height:124px;border:1px solid #ffffff70;border-radius:50%;background:#ffffff1b;position:relative;pointer-events:auto;backdrop-filter:blur(5px)}
-#knob{width:48px;height:48px;border-radius:50%;position:absolute;left:37px;top:37px;background:#ffffffb8;box-shadow:0 3px 14px #255b7766}
-.actions{display:flex;gap:13px;align-items:end;pointer-events:auto}.action{border:1px solid #ffffff80;background:#ffffff30;color:white;border-radius:50%;width:66px;height:66px;font-size:12px;font-weight:600;backdrop-filter:blur(8px);box-shadow:0 4px 18px #255b7733}.action.primary{width:78px;height:78px;background:#fff;color:#39718c;border:0}
-#start{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#6faed1aa,#d4eaf0aa);backdrop-filter:blur(7px);color:white;text-align:center;padding:28px}
-.panel{max-width:340px}.eyebrow{font-size:11px;letter-spacing:5px;opacity:.9}.title{font-size:42px;letter-spacing:8px;margin:16px 0 8px;font-weight:300}.sub{font-size:13px;line-height:2;opacity:.95}.startbtn{margin-top:30px;border:0;border-radius:30px;padding:15px 42px;background:white;color:#477f9b;font-size:14px;letter-spacing:2px;font-weight:700;box-shadow:0 8px 28px #24516a33}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#9fcce0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;touch-action:none}canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;color:#fff;text-shadow:0 2px 12px #24465c88}
+.top{position:absolute;top:calc(env(safe-area-inset-top) + 17px);left:20px;right:20px;display:flex;justify-content:space-between;align-items:flex-start}.brand{font-size:11px;letter-spacing:4px;font-weight:600}.stats{text-align:right;font-size:12px;line-height:1.8}
+#energyWrap{position:absolute;top:calc(env(safe-area-inset-top) + 61px);right:20px;width:116px;height:4px;border-radius:8px;background:#fff5;overflow:hidden}#energy{height:100%;width:100%;background:#fff;border-radius:8px}
+#hint{position:absolute;top:calc(env(safe-area-inset-top) + 83px);width:100%;text-align:center;font-size:11px;letter-spacing:1px;opacity:.9}
+#controls{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 22px);left:0;right:0;display:flex;align-items:end;justify-content:space-between;padding:0 23px;pointer-events:none}
+#stick{width:126px;height:126px;border:1px solid #ffffff8a;border-radius:50%;background:#ffffff1c;position:relative;pointer-events:auto;backdrop-filter:blur(8px)}
+#knob{width:49px;height:49px;position:absolute;left:38px;top:38px;border-radius:50%;background:#ffffffc9;box-shadow:0 4px 16px #315b6b55}
+.actions{display:flex;gap:13px;align-items:end;pointer-events:auto}.action{width:65px;height:65px;border-radius:50%;border:1px solid #fff9;background:#ffffff35;color:#fff;font-size:12px;backdrop-filter:blur(9px)}.action.primary{width:78px;height:78px;border:0;background:#fff;color:#527f91;font-weight:600}
+#start{position:fixed;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;text-align:center;color:white;background:linear-gradient(180deg,#6fabc5a8,#c8e4e8a8);backdrop-filter:blur(8px);padding:25px}.panel{max-width:340px}.eyebrow{font-size:10px;letter-spacing:5px}.title{font-size:46px;letter-spacing:10px;font-weight:300;margin:18px 0 9px}.sub{font-size:13px;line-height:2;opacity:.95}.startbtn{margin-top:29px;padding:15px 44px;border:0;border-radius:30px;background:#fff;color:#527f91;letter-spacing:2px;font-size:13px}
 #toast{position:absolute;bottom:190px;left:0;right:0;text-align:center;font-size:13px;opacity:0;transition:opacity .3s}
-#loading{position:fixed;inset:0;display:grid;place-items:center;color:white;font-size:13px;letter-spacing:2px;z-index:8}
-@media(min-width:700px){#controls{max-width:800px;margin:auto}.top{max-width:900px;left:50%;right:auto;width:calc(100% - 40px);transform:translateX(-50%)}}
+#loading{position:fixed;inset:0;display:grid;place-items:center;color:white;z-index:9;font-size:12px;letter-spacing:3px}
+@media(min-width:700px){#controls{max-width:850px;margin:auto}.top{max-width:900px;left:50%;right:auto;width:calc(100% - 40px);transform:translateX(-50%)}}
 </style>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 </head>
 <body>
-<div id="loading">正在唤醒云境…</div>
-<div id="hud"><div class="top"><div class="brand">CLOUD JOURNEY</div><div class="stats"><span id="count">✧ 0 / 12</span><br><span id="saved">旅程已准备</span></div></div><div id="energyWrap"><div id="energy"></div></div><div id="hint">拖动左侧圆盘移动 · 靠近光之碎片收集</div><div id="toast"></div>
-<div id="controls"><div id="stick"><div id="knob"></div></div><div class="actions"><button class="action" id="jump">跳跃</button><button class="action primary" id="fly">飞行</button></div></div></div>
-<div id="start"><div class="panel"><div class="eyebrow">A QUIET WORLD ABOVE THE CLOUDS</div><div class="title">云 境</div><div class="sub">穿过云海，寻找散落的微光。<br>慢一点，看看这个世界。</div><button class="startbtn" id="begin">进入云境</button></div></div>
+<div id="loading">正在绘制云境…</div>
+<div id="hud"><div class="top"><div class="brand">C L O U D &nbsp; J O U R N E Y</div><div class="stats"><span id="count">✧ 0 / 12</span><br><span id="saved">云端旅程</span></div></div><div id="energyWrap"><div id="energy"></div></div><div id="hint">轻推摇杆漫步 · 按住飞行，穿过云海</div><div id="toast"></div><div id="controls"><div id="stick"><div id="knob"></div></div><div class="actions"><button class="action" id="jump">跃起</button><button class="action primary" id="fly">飞行</button></div></div></div>
+<div id="start"><div class="panel"><div class="eyebrow">A QUIET WORLD ABOVE THE CLOUDS</div><div class="title">云 境</div><div class="sub">风从群山之间经过，微光在云层深处闪烁。<br>向前走，去遇见一片辽阔。</div><button class="startbtn" id="begin">开始旅程</button></div></div>
 <script type="module">
 import * as THREE from 'three';
 const $=id=>document.getElementById(id);
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x9bd0e8);scene.fog=new THREE.FogExp2(0xa9d9e9,.008);
-const camera=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.1,500);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;document.body.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xe9f8ff,0x7899a2,2.0));
-const sun=new THREE.DirectionalLight(0xfff1d5,2.4);sun.position.set(-35,60,25);sun.castShadow=true;scene.add(sun);
+const scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0xb9dbe5,.0047);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,650);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.65));renderer.setSize(innerWidth,innerHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.18;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe7f7ff,0x617e72,1.75));
+const sun=new THREE.DirectionalLight(0xffe9c5,3.1);sun.position.set(-65,90,30);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-75;sun.shadow.camera.right=75;sun.shadow.camera.top=75;sun.shadow.camera.bottom=-75;sun.shadow.bias=-.00025;scene.add(sun);
+const fill=new THREE.DirectionalLight(0xc4e7ff,.85);fill.position.set(40,25,-65);scene.add(fill);
 const mat=(c,r=.85,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,metalness:m});
-const islandMat=mat(0x6eaa9b),topMat=mat(0x9cc9a9),rockMat=mat(0x789b91),goldMat=new THREE.MeshStandardMaterial({color:0xffe6a1,emissive:0xffc85b,emissiveIntensity:1.8,roughness:.25});
-const ground=new THREE.Mesh(new THREE.SphereGeometry(500,32,16),mat(0x9bcde0));ground.scale.y=.12;ground.position.y=-58;scene.add(ground);
-function island(x,y,z,s=1){
- const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(s);scene.add(g);
- const base=new THREE.Mesh(new THREE.CylinderGeometry(5.7,3.5,5.8,9,1),islandMat);base.position.y=-2; g.add(base);
- const cap=new THREE.Mesh(new THREE.CylinderGeometry(5.9,5.6,1.1,9),topMat);cap.position.y=.65;g.add(cap);
- for(let i=0;i<7;i++){let rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.7+Math.random()*.7,0),rockMat);rock.position.set((Math.random()-.5)*8,-4-Math.random()*2,(Math.random()-.5)*8);g.add(rock)}
- for(let i=0;i<4;i++){let tree=new THREE.Group();let trunk=new THREE.Mesh(new THREE.CylinderGeometry(.12,.22,2,6),mat(0x7b8971));trunk.position.y=1;tree.add(trunk);let crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.1,1),mat([0x6faaa0,0x8bb9a2,0xacc8a2][i%3]));crown.position.y=2.2;tree.add(crown);tree.position.set((Math.random()-.5)*7,1,(Math.random()-.5)*7);g.add(tree)}
+const groundMat=mat(0x8eb5a0),grassMat=mat(0x9ebf94),rockMat=mat(0x718f87),stoneMat=mat(0xb8b7a4),barkMat=mat(0x776b59);
+const sky=new THREE.Mesh(new THREE.SphereGeometry(500,32,20),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color(0x4c91bd)},mid:{value:new THREE.Color(0xb6dce5)},low:{value:new THREE.Color(0xf4dfc1)}},vertexShader:'varying vec3 vP; void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:'varying vec3 vP; uniform vec3 top;uniform vec3 mid;uniform vec3 low;void main(){float h=normalize(vP).y;vec3 c=mix(low,mid,smoothstep(-.25,.25,h));c=mix(c,top,smoothstep(.05,.85,h));gl_FragColor=vec4(c,1.0);}' }));scene.add(sky);
+function hash(x,z){return Math.sin(x*127.1+z*311.7)*43758.5453%1}
+function noise(x,z){let a=Math.sin(x*.31+Math.sin(z*.17)*2),b=Math.cos(z*.27+x*.09);return a*.55+b*.45}
+function makeIsland(x,y,z,scale=1,seed=0){
+ const g=new THREE.Group();g.position.set(x,y,z);g.scale.setScalar(scale);scene.add(g);
+ const N=44,R=12,verts=[],uv=[],idx=[];
+ for(let j=0;j<=N;j++){for(let i=0;i<=N;i++){let u=i/N*2-1,v=j/N*2-1;let xx=u*R,zz=v*R;let edge=Math.max(Math.abs(u),Math.abs(v));let h=1.9+noise(xx+seed,zz-seed)*1.1-(Math.pow(edge,5)*4.4);verts.push(xx,h,zz);uv.push(i/N,j/N)}}
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++){let a=j*(N+1)+i,b=a+1,c=a+N+1,d=c+1;idx.push(a,c,b,b,c,d)}
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.setIndex(idx);geo.computeVertexNormals();
+ const top=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x91b78d,roughness:1,vertexColors:false}));top.receiveShadow=true;top.castShadow=true;g.add(top);
+ const underside=new THREE.Mesh(new THREE.ConeGeometry(10,13,9,4),rockMat);underside.position.y=-5.3;underside.rotation.y=.3;underside.castShadow=true;g.add(underside);
+ for(let k=0;k<8;k++){let a=k/8*Math.PI*2;let boulder=new THREE.Mesh(new THREE.DodecahedronGeometry(.9+(k%3)*.35,1),rockMat);boulder.position.set(Math.cos(a)*8,-2.8+Math.sin(k*8)*.6,Math.sin(a)*8);boulder.scale.y=1.5;boulder.castShadow=true;g.add(boulder)}
+ // grass tufts
+ for(let k=0;k<90;k++){let px=(Math.random()-.5)*18,pz=(Math.random()-.5)*18;if(Math.abs(px)>9||Math.abs(pz)>9)continue;let blade=new THREE.Mesh(new THREE.ConeGeometry(.12,.65,4),mat(k%3===0?0xb5c98e:0x759d79));blade.position.set(px,2.05,pz);blade.rotation.z=(Math.random()-.5)*.5;g.add(blade)}
+ // trees with layered organic crowns
+ for(let k=0;k<5;k++){let px=(Math.random()-.5)*13,pz=(Math.random()-.5)*13;let tree=new THREE.Group();let trunk=new THREE.Mesh(new THREE.CylinderGeometry(.13,.24,2.3,7),barkMat);trunk.position.y=1.1;trunk.castShadow=true;tree.add(trunk);for(let n=0;n<3;n++){let crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.05-n*.12,2),mat([0x638f7c,0x7fa68a,0x9bb894][(k+n)%3]));crown.position.set((Math.random()-.5)*.35,2.1+n*.5,(Math.random()-.5)*.35);crown.scale.set(1.1,.95,1);crown.castShadow=true;tree.add(crown)}tree.position.set(px,2,pz);g.add(tree)}
  return g;
 }
-island(0,0,0,1.25);island(-19,7,-29,.78);island(22,12,-53,1.05);island(-30,17,-78,.9);island(10,23,-102,1.1);island(39,29,-133,.85);island(-16,33,-158,1.1);island(18,40,-190,1.25);
-const cloudMat=new THREE.MeshStandardMaterial({color:0xf3fbff,roughness:1,transparent:true,opacity:.8});
-for(let i=0;i<95;i++){let c=new THREE.Group();let x=(Math.random()-.5)*230,y=-5+Math.random()*52,z=-Math.random()*260;for(let j=0;j<5;j++){let p=new THREE.Mesh(new THREE.SphereGeometry(2+Math.random()*3,9,7),cloudMat);p.position.set((Math.random()-.5)*7,(Math.random()-.5)*2,(Math.random()-.5)*5);p.scale.y=.55;c.add(p)}c.position.set(x,y,z);scene.add(c)}
-// soft distant floating arches
-for(let i=0;i<5;i++){let ring=new THREE.Mesh(new THREE.TorusGeometry(8+i*1.5,.18,8,64),new THREE.MeshStandardMaterial({color:0xe9f7f7,transparent:true,opacity:.25}));ring.position.set((i%2?1:-1)*(30+i*4),18+i*5,-60-i*35);ring.rotation.x=Math.PI/2.5;scene.add(ring)}
-// player
+const islands=[[0,0,0,1.35],[-24,9,-34,.78],[23,15,-65,1.03],[-32,23,-99,.88],[10,29,-130,1.08],[43,36,-166,.9],[-17,43,-204,1.05],[18,52,-245,1.25]];
+islands.forEach((p,i)=>makeIsland(...p,i*9));
+const cloudUniforms={time:{value:0}};
+const cloudMaterial=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,uniforms:cloudUniforms,vertexShader:'varying vec2 vUv;varying vec3 vWorld;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.0);vWorld=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`
+uniform float time;varying vec2 vUv;varying vec3 vWorld;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=noise(p)*a;p*=2.03;a*=.5;}return v;}
+void main(){vec2 p=vUv*5.0+vec2(time*.009,time*.003);float n=fbm(p);float edge=1.-smoothstep(.15,.49,length(vUv-.5));float d=smoothstep(.38,.72,n)*edge;vec3 col=mix(vec3(.76,.88,.91),vec3(1.0,.98,.91),smoothstep(.48,.78,n));gl_FragColor=vec4(col,d*.63);}
+`});
+const cloudLayers=[];
+for(let i=0;i<9;i++){let m=new THREE.Mesh(new THREE.PlaneGeometry(180,180,1,1),cloudMaterial);m.rotation.x=-Math.PI/2;m.position.set((i%3-1)*65,-8+i*2.5,-28-i*31);m.scale.set(1.5,1,1.2);scene.add(m);cloudLayers.push(m)}
+const cloudPuffs=[];const puffMat=new THREE.MeshStandardMaterial({color:0xf4fbfc,roughness:1,transparent:true,opacity:.7});
+for(let i=0;i<95;i++){let group=new THREE.Group();for(let j=0;j<5;j++){let puff=new THREE.Mesh(new THREE.SphereGeometry(2+Math.random()*3,12,9),puffMat);puff.position.set((Math.random()-.5)*7,(Math.random()-.5)*1.5,(Math.random()-.5)*5);puff.scale.y=.48;group.add(puff)}group.position.set((Math.random()-.5)*210,-6+Math.random()*37,-Math.random()*285);scene.add(group);cloudPuffs.push(group)}
+// waterfalls and distant stone gateways
+for(let i=0;i<3;i++){let water=new THREE.Mesh(new THREE.PlaneGeometry(2.2,15),new THREE.MeshBasicMaterial({color:0xc6edf1,transparent:true,opacity:.48,side:THREE.DoubleSide}));water.position.set([-7,18,4][i],-7,[-4,-66,-132][i]);water.rotation.x=.08;scene.add(water)}
+for(let i=0;i<4;i++){let arch=new THREE.Mesh(new THREE.TorusGeometry(7+i*1.5,.38,12,64),new THREE.MeshStandardMaterial({color:0xd9e7df,roughness:.8,transparent:true,opacity:.65}));arch.position.set(i%2?31:-30,17+i*9,-65-i*55);arch.rotation.x=Math.PI/2.3;arch.castShadow=true;scene.add(arch)}
+// Character: layered robe, hood, boots, articulated cape
 const player=new THREE.Group();scene.add(player);
-const robe=mat(0xf0eee0,.65),skin=mat(0xf2c7a3),cape=new THREE.MeshStandardMaterial({color:0xd6e9e9,roughness:.7,side:THREE.DoubleSide});
-const body=new THREE.Mesh(new THREE.CapsuleGeometry(.48,.9,5,9),robe);body.position.y=1.15;player.add(body);
-const head=new THREE.Mesh(new THREE.SphereGeometry(.42,16,12),skin);head.position.y=2.05;player.add(head);
-const hood=new THREE.Mesh(new THREE.SphereGeometry(.47,16,12,0,Math.PI*2,0,Math.PI*.58),mat(0xd8e8e8));hood.position.y=2.14;player.add(hood);
-const capeGeo=new THREE.BufferGeometry();const capeVerts=new Float32Array([-.35,1.8,.18,.35,1.8,.18,-.7,.1,.65,.7,.1,.65]);capeGeo.setAttribute('position',new THREE.BufferAttribute(capeVerts,3));capeGeo.setIndex([0,2,1,1,2,3]);capeGeo.computeVertexNormals();const capeMesh=new THREE.Mesh(capeGeo,cape);player.add(capeMesh);
-const footMat=mat(0x627c82);for(let x of [-.23,.23]){let f=new THREE.Mesh(new THREE.CapsuleGeometry(.13,.42,3,7),footMat);f.position.set(x,.25,0);player.add(f)}
-player.position.set(0,0,2);
-const halo=new THREE.PointLight(0xffe5a5,1.2,8);halo.position.y=2;player.add(halo);
-const shards=[];const positions=[[-7,3,-12],[-19,10,-29],[20,15,-52],[-29,20,-77],[10,26,-101],[39,32,-132],[-16,36,-157],[18,43,-189],[-5,6,-6],[25,17,-58],[-36,22,-82],[8,48,-194]];
-positions.forEach((p,i)=>{let group=new THREE.Group();let gem=new THREE.Mesh(new THREE.OctahedronGeometry(.48),goldMat);group.add(gem);let glow=new THREE.PointLight(0xffd982,1.4,7);group.add(glow);group.position.set(...p);scene.add(group);shards.push({group,got:false,phase:i})});
-let count=Number(localStorage.getItem('cloud_shards')||0);let got=JSON.parse(localStorage.getItem('cloud_got')||'[]');shards.forEach((s,i)=>{if(got.includes(i)){s.got=true;s.group.visible=false}});count=got.length;
-let energy=100,flying=false,started=false,velY=0,velX=0,velZ=0,yaw=0;const input={x:0,y:0};let last=performance.now();
-const updateHud=()=>{$('count').textContent='✧ '+count+' / 12';$('energy').style.width=energy+'%';$('saved').textContent=count===12?'微光已全部寻回':'已收集 '+count+' 枚微光'};
+const robeMat=mat(0xe6e4d7,.72),hoodMat=mat(0xd6e3df,.75),skinMat=mat(0xc99f82),darkMat=mat(0x526c70);
+const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.42,.9,7,12),robeMat);torso.position.y=1.22;torso.castShadow=true;player.add(torso);
+const head=new THREE.Mesh(new THREE.SphereGeometry(.36,24,18),skinMat);head.position.set(0,2.04,-.02);head.castShadow=true;player.add(head);
+const hood=new THREE.Mesh(new THREE.SphereGeometry(.43,24,18,0,Math.PI*2,0,Math.PI*.72),hoodMat);hood.position.set(0,2.12,.02);player.add(hood);
+const hoodRim=new THREE.Mesh(new THREE.TorusGeometry(.37,.045,8,24),mat(0xf5f0df));hoodRim.position.set(0,1.98,.015);hoodRim.rotation.x=Math.PI/2;player.add(hoodRim);
+for(let side of [-1,1]){let arm=new THREE.Mesh(new THREE.CapsuleGeometry(.13,.55,5,8),robeMat);arm.position.set(side*.52,1.25,0);arm.rotation.z=side*.25;player.add(arm);let boot=new THREE.Mesh(new THREE.CapsuleGeometry(.13,.34,4,8),darkMat);boot.position.set(side*.2,.25,-.04);player.add(boot)}
+const capeMat=new THREE.MeshStandardMaterial({color:0xc5deda,roughness:.62,side:THREE.DoubleSide,metalness:.02});
+const capeGeo=new THREE.PlaneGeometry(1.65,2.25,10,14);const cape= new THREE.Mesh(capeGeo,capeMat);cape.position.set(0,1.08,.38);cape.castShadow=true;player.add(cape);
+const capeBase=capeGeo.attributes.position.array.slice();
+const shoulder=new THREE.Mesh(new THREE.SphereGeometry(.5,16,10),hoodMat);shoulder.scale.set(1,.38,.35);shoulder.position.set(0,1.73,.28);player.add(shoulder);
+const glow=new THREE.PointLight(0xffdfa0,1.1,9);glow.position.set(0,2,0);player.add(glow);
+player.position.set(0,0,3);
+const shardMat=new THREE.MeshStandardMaterial({color:0xffe7a8,emissive:0xffbb52,emissiveIntensity:2.4,roughness:.18,metalness:.15});
+const shards=[],shardPositions=[[-7,4,-13],[-24,12,-34],[22,18,-64],[-32,26,-98],[10,32,-129],[43,39,-165],[-17,46,-203],[18,55,-244],[4,5,-7],[28,21,-70],[-39,28,-103],[10,60,-250]];
+shardPositions.forEach((p,i)=>{let group=new THREE.Group();let gem=new THREE.Mesh(new THREE.OctahedronGeometry(.48,1),shardMat);gem.scale.set(.8,1.45,.8);group.add(gem);let halo=new THREE.Mesh(new THREE.TorusGeometry(.72,.025,6,40),new THREE.MeshBasicMaterial({color:0xffedc1,transparent:true,opacity:.75}));group.add(halo);let light=new THREE.PointLight(0xffd47b,1.5,9);group.add(light);group.position.set(...p);scene.add(group);shards.push({group,got:false,phase:i})});
+let got=JSON.parse(localStorage.getItem('cloud_got')||'[]');shards.forEach((s,i)=>{if(got.includes(i)){s.got=true;s.group.visible=false}});let count=got.length,energy=100,started=false,flying=false,velY=0,yaw=0;const input={x:0,y:0};let last=performance.now();
+function updateHud(){$('count').textContent='✧ '+count+' / 12';$('energy').style.width=energy+'%';$('saved').textContent=count===12?'所有微光已寻回':'已寻回 '+count+' 枚微光'}
+function toast(t){$('toast').textContent=t;$('toast').style.opacity=1;clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('toast').style.opacity=0,1800)}
 updateHud();
-function toast(t){$('toast').textContent=t;$('toast').style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').style.opacity=0,1900)}
-function setStick(e){const r=$('stick').getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy,l=Math.hypot(dx,dy),max=42;if(l>max){dx=dx/l*max;dy=dy/l*max}input.x=dx/max;input.y=dy/max;$('knob').style.transform='translate('+dx+'px,'+dy+'px)'}
-let stickOn=false;const stick=$('stick');stick.addEventListener('pointerdown',e=>{stickOn=true;stick.setPointerCapture(e.pointerId);setStick(e)});stick.addEventListener('pointermove',e=>{if(stickOn)setStick(e)});function release(){stickOn=false;input.x=input.y=0;$('knob').style.transform='translate(0,0)'}stick.addEventListener('pointerup',release);stick.addEventListener('pointercancel',release);
-$('jump').addEventListener('pointerdown',e=>{e.preventDefault();if(!flying&&player.position.y<.2)velY=8.5});$('fly').addEventListener('pointerdown',e=>{e.preventDefault();flying=true;toast('展开斗篷，乘风而上')});$('fly').addEventListener('pointerup',()=>flying=false);$('fly').addEventListener('pointercancel',()=>flying=false);$('fly').addEventListener('pointerleave',()=>flying=false);
+const stick=$('stick'),knob=$('knob');let stickOn=false;
+function moveStick(e){const r=stick.getBoundingClientRect();let dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2),l=Math.hypot(dx,dy),max=43;if(l>max){dx=dx/l*max;dy=dy/l*max}input.x=dx/max;input.y=dy/max;knob.style.transform='translate('+dx+'px,'+dy+'px)'}
+stick.addEventListener('pointerdown',e=>{stickOn=true;stick.setPointerCapture(e.pointerId);moveStick(e)});stick.addEventListener('pointermove',e=>{if(stickOn)moveStick(e)});function release(){stickOn=false;input.x=input.y=0;knob.style.transform='translate(0,0)'}stick.addEventListener('pointerup',release);stick.addEventListener('pointercancel',release);
+$('jump').addEventListener('pointerdown',e=>{e.preventDefault();if(player.position.y<.25&&!flying)velY=8.7});
+$('fly').addEventListener('pointerdown',e=>{e.preventDefault();flying=true});['pointerup','pointercancel','pointerleave'].forEach(ev=>$('fly').addEventListener(ev,()=>flying=false));
 $('begin').onclick=()=>{$('start').style.display='none';started=true;toast('旅程开始了')};
-function animate(now){requestAnimationFrame(animate);let dt=Math.min((now-last)/1000,.04);last=now;let t=now*.001;
- shards.forEach(s=>{if(!s.got){s.group.rotation.y+=dt*.8;s.group.position.y+=Math.sin(t*1.6+s.phase)*dt*.18}});
- if(started){
-  let forward=-input.y,side=input.x;let moving=Math.abs(forward)+Math.abs(side)>.04;
-  const speed=flying?12:6.2;let dx=side*Math.cos(yaw)+forward*Math.sin(yaw),dz=-forward*Math.cos(yaw)+side*Math.sin(yaw);
-  if(moving){let target=Math.atan2(dx,-dz);yaw=target;player.rotation.y=yaw;player.position.x+=dx*speed*dt;player.position.z+=dz*speed*dt}
-  if(flying&&energy>0){velY=4.2;energy=Math.max(0,energy-13*dt)}else{velY-=17*dt;energy=Math.min(100,energy+5*dt)}
-  player.position.y+=velY*dt;
-  if(player.position.y<0){player.position.y=0;velY=0}
-  // island platforms as gentle landing zones
-  const pads=[[0,0,0,7.1],[-19,7,-29,4.6],[22,12,-53,6],[-30,17,-78,5.2],[10,23,-102,6.3],[39,29,-133,4.8],[-16,33,-158,6],[18,40,-190,7.2]];
-  for(const [x,y,z,r] of pads){let d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.4&&player.position.y>y-.5&&velY<0){player.position.y=y+1.35;velY=0}}
-  // collect light
-  shards.forEach((s,i)=>{if(!s.got&&player.position.distanceTo(s.group.position)<2.5){s.got=true;s.group.visible=false;got.push(i);count=got.length;localStorage.setItem('cloud_got',JSON.stringify(got));localStorage.setItem('cloud_shards',String(count));energy=Math.min(100,energy+18);updateHud();toast('✧ 收集到一枚微光')}})
+const pads=islands.map(p=>[p[0],p[1],p[2],p[3]*10]);
+function animate(now){requestAnimationFrame(animate);let dt=Math.min((now-last)/1000,.035);last=now;let t=now*.001;cloudUniforms.time.value=t;
+ cloudPuffs.forEach((c,i)=>{c.position.x+=Math.sin(t*.12+i)*dt*.7;c.position.z+=Math.cos(t*.09+i)*dt*.35});
+ shards.forEach(s=>{if(!s.got){s.group.rotation.y+=dt*.75;s.group.position.y+=Math.sin(t*1.6+s.phase)*dt*.12}});
+ let moving=false;
+ if(started){let f=-input.y,side=input.x;moving=Math.abs(f)+Math.abs(side)>.04;let speed=flying?11.5:5.7;let dx=side*Math.cos(yaw)+f*Math.sin(yaw),dz=-f*Math.cos(yaw)+side*Math.sin(yaw);if(moving){yaw=Math.atan2(dx,-dz);player.rotation.y=THREE.MathUtils.lerp(player.rotation.y,yaw,.18);player.position.x+=dx*speed*dt;player.position.z+=dz*speed*dt}
+ if(flying&&energy>0){velY=4.1;energy=Math.max(0,energy-12*dt)}else{velY-=16*dt;energy=Math.min(100,energy+4.8*dt)}player.position.y+=velY*dt;
+ if(player.position.y<0){player.position.y=0;velY=0}
+ for(const [x,y,z,r] of pads){let d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.8&&player.position.y>y-.7&&velY<0){player.position.y=y+1.35;velY=0}}
+ shards.forEach((s,i)=>{if(!s.got&&player.position.distanceTo(s.group.position)<2.4){s.got=true;s.group.visible=false;got.push(i);count=got.length;localStorage.setItem('cloud_got',JSON.stringify(got));energy=Math.min(100,energy+20);updateHud();toast('✧ 收集到一枚微光')}});
  }
- const target=new THREE.Vector3(player.position.x,player.position.y+2.6,player.position.z+7.5);camera.position.lerp(target,.075);const look=new THREE.Vector3(player.position.x,player.position.y+1.3,player.position.z-4);camera.lookAt(look);
- const sway=Math.sin(t*4)*.035;body.rotation.z=moving?Math.sin(t*9)*.07:0;capeMesh.rotation.x=flying?-.3+sway:sway;capeMesh.rotation.z=Math.sin(t*3)*.04;
- halo.intensity=.8+Math.sin(t*3)*.25;updateHud();renderer.render(scene,camera);
+ // cloth deformation, wind and glide lift
+ const pos=cape.geometry.attributes.position;for(let i=0;i<pos.count;i++){let x=capeBase[i*3],y=capeBase[i*3+1];let flutter=Math.sin(t*4+y*2+x*3)*(.035+Math.abs(y)*.045);pos.setZ(i,capeBase[i*3+2]+flutter+(flying?Math.max(0,-y)*.22:0));}pos.needsUpdate=true;cape.geometry.computeVertexNormals();cape.rotation.x=flying?-.13:Math.sin(t*2)*.025;
+ torso.rotation.z=moving?Math.sin(t*9)*.035:0;glow.intensity=.8+Math.sin(t*3)*.25;
+ let target=new THREE.Vector3(player.position.x,player.position.y+3.2,player.position.z+8.5);camera.position.lerp(target,.065);camera.lookAt(player.position.x,player.position.y+1.25,player.position.z-3.5);
+ renderer.render(scene,camera);
 }
-let moving=false;requestAnimationFrame(animate);
+requestAnimationFrame(animate);
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 $('loading').style.display='none';
 </script>
