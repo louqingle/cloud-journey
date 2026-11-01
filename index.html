@@ -57,29 +57,30 @@ const mat=(c,r=.85,m=0)=>new THREE.MeshStandardMaterial({color:c,roughness:r,met
 const stone=mat(0x718d8b,1),stoneLight=mat(0x9baea2,.92),bark=mat(0x756b59,1),leafA=mat(0x5f8d7d,1),leafB=mat(0x82a88b,1),leafC=mat(0xa8bd91,1);
 const sky=new THREE.Mesh(new THREE.SphereGeometry(700,32,20),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color(0x397ca7)},mid:{value:new THREE.Color(0x9ccbd9)},low:{value:new THREE.Color(0xf4d9bd)}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top,mid,low;void main(){float h=normalize(p).y;vec3 c=mix(low,mid,smoothstep(-.3,.2,h));c=mix(c,top,smoothstep(.08,.82,h));gl_FragColor=vec4(c,1.);}'}));scene.add(sky);
 function noise(x,z){return Math.sin(x*.31+Math.sin(z*.17)*1.8)*.55+Math.cos(z*.27+x*.09)*.45}
-// Procedural ground and foliage materials (shared by instanced meshes)
-const stoneLight=new THREE.MeshStandardMaterial({color:0x78827e,roughness:1});
-const bark=new THREE.MeshStandardMaterial({color:0x594b3c,roughness:1});
-const leafB=new THREE.MeshStandardMaterial({color:0x557b68,roughness:1});
 // Continuous explorable mainland: sculpted terrain, biome vertex colors and instanced vegetation
 function terrainHeight(x,z){
- const rolling=Math.sin(x*.018+Math.sin(z*.012)*1.8)*3.2+Math.cos(z*.021-x*.009)*2.5;
- const ridge=Math.pow(Math.max(0,Math.sin(x*.009+z*.006+Math.sin(z*.014)*2)),2)*7.5;
+ const rolling=Math.sin(x*.018+Math.sin(z*.012)*1.8)*4.4+Math.cos(z*.021-x*.009)*3.2;
+ const ridge=Math.pow(Math.max(0,Math.sin(x*.009+z*.006+Math.sin(z*.014)*2)),3.2)*16;
  const valley=-Math.exp(-Math.pow((x-42)/48,2))*4.2;
- const foothill=Math.sin(x*.052+z*.037)*.75+Math.cos(z*.061-x*.043)*.55;
+ const foothill=Math.sin(x*.052+z*.037)*1.15+Math.cos(z*.061-x*.043)*.85+Math.sin(x*.11+z*.083)*.28;
  return -22+rolling+ridge+valley+foothill;
 }
 {
- const sx=760,sz=920,nx=160,nz=190,verts=[],colors=[],indices=[];
+ const sx=760,sz=920,nx=220,nz=266,verts=[],colors=[],indices=[];
  for(let j=0;j<=nz;j++)for(let i=0;i<=nx;i++){
   const x=(i/nx-.5)*sx,z=130-j/nz*sz,y=terrainHeight(x,z);
   verts.push(x,y,z);
-  const detail=Math.sin(x*.19+z*.13)*.025+Math.cos(z*.23-x*.11)*.018;
+  const detail=Math.sin(x*.19+z*.13)*.035+Math.cos(z*.23-x*.11)*.025;
+  const gx=(terrainHeight(x+1.2,z)-terrainHeight(x-1.2,z))*.42;
+  const gz=(terrainHeight(x,z+1.2)-terrainHeight(x,z-1.2))*.42;
+  const slope=Math.min(1,Math.hypot(gx,gz));
   let c;
-  if(y>-13)c=new THREE.Color(0x8da77c);
-  else if(y>-18)c=new THREE.Color(0x668b70);
-  else if(y>-23)c=new THREE.Color(0x587d70);
-  else c=new THREE.Color(0x637b78);
+  if(y>-12)c=new THREE.Color(0x91a97b);
+  else if(y>-18)c=new THREE.Color(0x6d9274);
+  else if(y>-25)c=new THREE.Color(0x587d70);
+  else c=new THREE.Color(0x667d7b);
+  const cliff=new THREE.Color(0x858982);
+  c.lerp(cliff,THREE.MathUtils.smoothstep(slope,.42,.95)*.82);
   c.offsetHSL(0,0,detail);colors.push(c.r,c.g,c.b);
  }
  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const a=j*(nx+1)+i,b=a+1,c=a+nx+1,d=c+1;indices.push(a,b,c,b,d,c)}
