@@ -81,59 +81,55 @@ for(let row=0;row<3;row++){for(let i=0;i<15;i++){const h=18+Math.random()*34,m=n
 for(let i=0;i<5;i++){const fall=new THREE.Mesh(new THREE.PlaneGeometry(2.2,19+Math.random()*10),new THREE.MeshBasicMaterial({color:0xc5f0f2,transparent:true,opacity:.42,side:THREE.DoubleSide}));fall.position.set((i%2?1:-1)*8, -7, -26-i*49);scene.add(fall)}
 // ancient floating stone rings, a distant navigation landmark
 for(let i=0;i<4;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(6+i*.9,.34,10,64),new THREE.MeshStandardMaterial({color:0xd6e4d9,roughness:.8,metalness:.12,transparent:true,opacity:.62}));ring.position.set(i%2?31:-32,18+i*10,-83-i*58);ring.rotation.set(.35,0,Math.PI/2.3);scene.add(ring)}
-// Character v2: a coherent, stylized wayfarer silhouette with tailored layered garments
+// Character v3: original warm, storybook sky-traveler with a bold readable silhouette
 const player=new THREE.Group();scene.add(player);player.position.set(0,2.55,4);
 const body=new THREE.Group();player.add(body);
-const robe=mat(0x263f4a,.78),robeLight=mat(0x496875,.72),ivory=mat(0xe7e0cf,.72),hoodMat=mat(0xc5d4cb,.58),hoodShade=mat(0x263a43,.68),gold=mat(0xc6a36a,.34,.32),leather=mat(0x594d43,.88),inner=mat(0x172b35,.85);
-const glowMat=new THREE.MeshStandardMaterial({color:0xfff0c8,emissive:0xffbd61,emissiveIntensity:2.1,roughness:.22});
+const robe=mat(0xf0dfbd,.82),robeShade=mat(0xd7b98e,.88),cream=mat(0xffedcf,.76),hairMat=mat(0xd9b47b,.72),hairLight=mat(0xf1d69b,.68),hairShade=mat(0x9d7048,.82),faceMat=mat(0x26313a,.72),redCape=mat(0xb94728,.7),capeLight=mat(0xe36b35,.63),gold=mat(0xe9b75f,.34,.18),leather=mat(0x76513a,.86);
+const glowMat=new THREE.MeshStandardMaterial({color:0xfff1c8,emissive:0xffa92e,emissiveIntensity:2.7,roughness:.22});
 function mesh(parent,geo,material,pos,scale,rot){const m=new THREE.Mesh(geo,material);if(pos)m.position.set(...pos);if(scale)m.scale.set(...scale);if(rot)m.rotation.set(...rot);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 const torso=new THREE.Group();body.add(torso);
-const robeProfile=[new THREE.Vector2(.16,0),new THREE.Vector2(.22,.08),new THREE.Vector2(.29,.28),new THREE.Vector2(.38,.65),new THREE.Vector2(.43,1.05),new THREE.Vector2(.39,1.38),new THREE.Vector2(.3,1.62),new THREE.Vector2(.22,1.72)];
-mesh(torso,new THREE.LatheGeometry(robeProfile,48),robe,[0,.22,0]);
-mesh(torso,new THREE.LatheGeometry([new THREE.Vector2(.17,0),new THREE.Vector2(.205,.36),new THREE.Vector2(.22,.76),new THREE.Vector2(.19,1.08)],32),robeLight,[0,.31,-.015]);
-const frontPanel=mesh(torso,new THREE.ShapeGeometry((()=>{const sh=new THREE.Shape();sh.moveTo(-.18,1.7);sh.lineTo(.18,1.7);sh.lineTo(.27,.12);sh.lineTo(0,.03);sh.lineTo(-.27,.12);sh.closePath();return sh})()),ivory,[0,.23,-.285]);
-frontPanel.scale.set(.82,.92,1);
-mesh(torso,new THREE.TorusGeometry(.335,.045,10,48),gold,[0,.68,0],[1,1,.88],[Math.PI/2,0,0]);
-mesh(torso,new THREE.TorusGeometry(.355,.012,7,48),ivory,[0,.68,0],[1,1,.89],[Math.PI/2,0,0]);
-mesh(torso,new THREE.OctahedronGeometry(.105,1),glowMat,[0,.73,-.34],[.72,1.35,.5],[0,0,Math.PI/4]);
-// A sculpted hood: rear cowl, dark recessed face, brow and luminous narrow eyes
-mesh(body,new THREE.SphereGeometry(.37,32,24),hoodMat,[0,2.04,.035],[1.02,1.13,.96]);
-mesh(body,new THREE.SphereGeometry(.285,32,24),hoodShade,[0,2.01,-.285],[.91,.76,.37]);
-mesh(body,new THREE.TorusGeometry(.302,.052,12,48),ivory,[0,1.98,-.19],[1,.96,.78],[Math.PI/2,0,0]);
-mesh(body,new THREE.TorusGeometry(.365,.025,8,48),gold,[0,2.08,.01],[1,1,.96],[Math.PI/2,0,0]);
-for(const side of [-1,1]){
- const eye=mesh(body,new THREE.SphereGeometry(.034,16,12),glowMat,[side*.105,2.045,-.565],[1.25,.48,.45]);
- eye.material=glowMat;
- mesh(body,new THREE.SphereGeometry(.075,16,12),gold,[side*.32,1.68,-.03],[.7,.8,.6]);
-}
-// Shoulder mantle with a clean, broad silhouette
-const mantle=new THREE.Group();mantle.position.set(0,1.58,.015);body.add(mantle);
-mesh(mantle,new THREE.SphereGeometry(.48,32,20),robeLight,[0,0,0],[1.35,.43,.88]);
-mesh(mantle,new THREE.TorusGeometry(.39,.027,8,56),gold,[0,-.08,-.08],[1.18,.78,.85],[Math.PI/2,0,0]);
-// articulated arms, tapered sleeves and small gloves
+const robeProfile=[new THREE.Vector2(.13,0),new THREE.Vector2(.19,.08),new THREE.Vector2(.25,.28),new THREE.Vector2(.31,.62),new THREE.Vector2(.32,.92),new THREE.Vector2(.25,1.17),new THREE.Vector2(.18,1.3)];
+mesh(torso,new THREE.LatheGeometry(robeProfile,40),robe,[0,.27,0]);
+mesh(torso,new THREE.LatheGeometry([new THREE.Vector2(.12,0),new THREE.Vector2(.16,.35),new THREE.Vector2(.17,.7),new THREE.Vector2(.13,.98)],28),cream,[0,.35,-.018]);
+mesh(torso,new THREE.TorusGeometry(.27,.038,9,40),gold,[0,.62,0],[1,1,.9],[Math.PI/2,0,0]);
+mesh(torso,new THREE.OctahedronGeometry(.09,1),glowMat,[0,.69,-.29],[.75,1.25,.55],[0,0,Math.PI/4]);
+// Large soft head, dark simple face and fringe
+mesh(body,new THREE.SphereGeometry(.54,32,28),faceMat,[0,2.02,-.015],[.91,1.02,.86]);
+mesh(body,new THREE.SphereGeometry(.57,32,28),hairMat,[0,2.19,.025],[1.03,1.04,.96]);
+// rear hair cap and distinct tapered locks, visible from the normal follow camera
+mesh(body,new THREE.SphereGeometry(.55,32,24),hairLight,[0,2.16,.19],[1.02,.94,.88]);
+for(let i=0;i<7;i++){const x=(i-3)*.135;mesh(body,new THREE.SphereGeometry(.22,18,14),i%2?hairLight:hairMat,[x,1.86,.39+Math.abs(x)*.08],[.72,1.35,.72],[0,0,-x*.35])}
+for(let i=0;i<5;i++){const x=(i-2)*.17;mesh(body,new THREE.SphereGeometry(.2,18,14),hairMat,[x,2.02,-.40],[.82,.68,.5],[0,0,-x*.28])}
+for(const side of [-1,1]){mesh(body,new THREE.SphereGeometry(.045,14,10),glowMat,[side*.145,2.04,-.49],[1,.7,.5])}
+// Signature twin ribbon bow, placed high at the back of the head
+for(const side of [-1,1]){mesh(body,new THREE.SphereGeometry(.25,20,16),capeLight,[side*.22,2.63,.28],[.78,1.18,.34],[0,0,side*.42]);mesh(body,new THREE.SphereGeometry(.19,18,14),gold,[side*.23,2.65,.30],[.7,.9,.22],[0,0,side*.42])}
+mesh(body,new THREE.SphereGeometry(.12,18,14),gold,[0,2.61,.39],[1,1,.65]);
+// Shoulder collar and rounded sleeves
+const mantle=new THREE.Group();mantle.position.set(0,1.52,.015);body.add(mantle);
+mesh(mantle,new THREE.SphereGeometry(.38,24,18),robeShade,[0,0,0],[1.42,.47,.95]);
+mesh(mantle,new THREE.TorusGeometry(.34,.035,8,48),gold,[0,-.09,-.035],[1.1,.82,.85],[Math.PI/2,0,0]);
 const armRigs=[],legRigs=[];
 for(const side of [-1,1]){
- const arm=new THREE.Group();arm.position.set(side*.43,1.47,0);body.add(arm);
- mesh(arm,new THREE.CapsuleGeometry(.145,.47,8,16),robeLight,[side*.075,-.24,0],[1,.94,1],[0,0,-side*.16]);
- mesh(arm,new THREE.CapsuleGeometry(.105,.32,8,14),ivory,[side*.16,-.59,-.025],[.92,1,.95],[0,0,-side*.1]);
- mesh(arm,new THREE.TorusGeometry(.105,.018,7,24),gold,[side*.16,-.72,-.025],[1,1,.9],[Math.PI/2,0,0]);
- mesh(arm,new THREE.SphereGeometry(.105,18,14),leather,[side*.17,-.83,-.035],[.9,1.05,.9]);
+ const arm=new THREE.Group();arm.position.set(side*.36,1.43,0);body.add(arm);
+ mesh(arm,new THREE.CapsuleGeometry(.135,.36,7,14),robe,[side*.08,-.2,0],[1,1,1],[0,0,-side*.22]);
+ mesh(arm,new THREE.CapsuleGeometry(.105,.27,7,12),cream,[side*.15,-.5,-.015]);
+ mesh(arm,new THREE.SphereGeometry(.105,16,12),hairMat,[side*.17,-.72,-.025]);
  armRigs.push(arm);
- const leg=new THREE.Group();leg.position.set(side*.16,.39,0);body.add(leg);
- mesh(leg,new THREE.CapsuleGeometry(.095,.38,6,12),inner,[0,-.16,0]);
- mesh(leg,new THREE.CapsuleGeometry(.125,.22,6,12),leather,[0,-.42,-.08],[1,.8,1.3]);
- mesh(leg,new THREE.TorusGeometry(.105,.018,7,24),gold,[0,-.31,-.01],[1,1,.9],[Math.PI/2,0,0]);
+ const leg=new THREE.Group();leg.position.set(side*.145,.43,0);body.add(leg);
+ mesh(leg,new THREE.CapsuleGeometry(.09,.3,6,12),robeShade,[0,-.13,0]);
+ mesh(leg,new THREE.CapsuleGeometry(.14,.19,6,12),glowMat,[0,-.36,-.065],[1,.8,1.35]);
+ mesh(leg,new THREE.TorusGeometry(.12,.025,8,24),gold,[0,-.28,-.01],[1,1,.9],[Math.PI/2,0,0]);
  legRigs.push(leg);
 }
-// Split-tail mantle panels create a designed silhouette rather than a flat sheet
-const capeMat=new THREE.MeshStandardMaterial({color:0x527f89,roughness:.57,metalness:.08,side:THREE.DoubleSide});
-const capeGeo=new THREE.PlaneGeometry(2.05,2.48,18,20),cape=new THREE.Mesh(capeGeo,capeMat);cape.position.set(0,1.02,.39);cape.castShadow=true;body.add(cape);const capeBase=capeGeo.attributes.position.array.slice();
-const capeEdge=new THREE.LineBasicMaterial({color:0xe1c28c,transparent:true,opacity:.9});
-for(const side of [-1,1]){const pts=[];for(let j=0;j<=20;j++){const y=1.24-j*.124;const taper=1-.16*(j/20);pts.push(new THREE.Vector3(side*1.025*taper,y,0))}const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),capeEdge);line.position.set(0,0,.014);cape.add(line)}
-// Small travel satchel and clasp
-mesh(body,new THREE.BoxGeometry(.27,.32,.15),leather,[.39,.91,.18],[1,1,1],[0,0,-.16]);
-mesh(body,new THREE.BoxGeometry(.13,.055,.035),gold,[.39,.94,.095]);
-const halo=new THREE.PointLight(0xffd994,1.1,10);halo.position.set(0,2,0);body.add(halo);
+// Broad vermilion cape, with a curved lower hem and warm glowing piping
+const capeMat=new THREE.MeshStandardMaterial({color:0xc94e2d,roughness:.61,metalness:.025,side:THREE.DoubleSide,emissive:0x391006,emissiveIntensity:.18});
+const capeGeo=new THREE.PlaneGeometry(1.95,1.95,18,20),cape=new THREE.Mesh(capeGeo,capeMat);cape.position.set(0,1.02,.39);cape.castShadow=true;body.add(cape);const capeBase=capeGeo.attributes.position.array.slice();
+const capeEdge=new THREE.LineBasicMaterial({color:0xffc36e,transparent:true,opacity:.95});
+for(const side of [-1,1]){const pts=[];for(let j=0;j<=20;j++){const v=j/20,y=.98-v*1.92,w=.98*(.52+.48*Math.sin(v*Math.PI*.5));pts.push(new THREE.Vector3(side*w,y,0))}const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),capeEdge);line.position.set(0,0,.018);cape.add(line)}
+// Little back charm, readable from behind
+mesh(body,new THREE.SphereGeometry(.17,18,14),leather,[0,1.05,.51],[1,.85,.5]);
+mesh(body,new THREE.OctahedronGeometry(.11,1),glowMat,[0,1.08,.61],[1,1.2,.6]);
+const halo=new THREE.PointLight(0xffb45e,1.5,11);halo.position.set(0,2,0);body.add(halo);
 const shards=[],shardPositions=[[-7,4,-13],[-25,13,-36],[24,19,-69],[-35,27,-107],[9,34,-144],[45,42,-183],[-19,51,-224],[18,62,-269],[4,5,-7],[28,22,-76],[-39,30,-112],[10,67,-275]];
 const shardMat=new THREE.MeshStandardMaterial({color:0xffe8b0,emissive:0xffbb52,emissiveIntensity:2.6,roughness:.2,metalness:.1});
 shardPositions.forEach((p,i)=>{const g=new THREE.Group();const gem=mesh(g,new THREE.OctahedronGeometry(.43,1),shardMat,[0,0,0],[.8,1.5,.8]);mesh(g,new THREE.TorusGeometry(.68,.022,7,40),new THREE.MeshBasicMaterial({color:0xffedc4,transparent:true,opacity:.8}));const l=new THREE.PointLight(0xffd47b,1.3,8);g.add(l);g.position.set(...p);scene.add(g);shards.push({group:g,got:false,phase:i})});
