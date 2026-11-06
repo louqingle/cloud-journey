@@ -93,8 +93,8 @@ function terrainHeight(x,z){
  const groundMat=new THREE.MeshStandardMaterial({vertexColors:true,map:groundTex,roughness:1,metalness:0});
  // World-space multi-scale material: mottled soil, fine stone grain and slope-driven exposed rock
  groundMat.onBeforeCompile=(shader)=>{
-  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\\nvarying vec3 vTerrainWorldPos;\\nvarying vec3 vTerrainWorldNormal;');
-  shader.vertexShader=shader.vertexShader.replace('#include <worldpos_vertex>','#include <worldpos_vertex>\\nvTerrainWorldPos=(modelMatrix*vec4(transformed,1.0)).xyz;\\nvTerrainWorldNormal=normalize(mat3(modelMatrix)*objectNormal);');
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vTerrainWorldPos;\nvarying vec3 vTerrainWorldNormal;');
+  shader.vertexShader=shader.vertexShader.replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nvTerrainWorldPos=(modelMatrix*vec4(transformed,1.0)).xyz;\nvTerrainWorldNormal=normalize(mat3(modelMatrix)*objectNormal);');
   shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
 varying vec3 vTerrainWorldPos;
 varying vec3 vTerrainWorldNormal;
