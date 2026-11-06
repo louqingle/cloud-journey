@@ -185,54 +185,62 @@ for(let row=0;row<3;row++){
 for(let i=0;i<5;i++){const fall=new THREE.Mesh(new THREE.PlaneGeometry(2.2,19+Math.random()*10),new THREE.MeshBasicMaterial({color:0xc5f0f2,transparent:true,opacity:.42,side:THREE.DoubleSide}));fall.position.set((i%2?1:-1)*8, -7, -26-i*49);scene.add(fall)}
 // ancient floating stone rings, a distant navigation landmark
 for(let i=0;i<4;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(6+i*.9,.34,10,64),new THREE.MeshStandardMaterial({color:0xd6e4d9,roughness:.8,metalness:.12,transparent:true,opacity:.62}));ring.position.set(i%2?31:-32,18+i*10,-83-i*58);ring.rotation.set(.35,0,Math.PI/2.3);scene.add(ring)}
-// Original sky-spirit traveler: soft hood, quiet face, flowing mantle and broad wing-cape
+// Original celestial wanderer: anime-styled chibi silhouette, lavender hair, shadow face and glowing wing ornaments
 const player=new THREE.Group();scene.add(player);player.position.set(0,2.55,4);
 const body=new THREE.Group();player.add(body);
-const robe=mat(0xe9dfc8,.94),robeShade=mat(0xc8b99d,.98),cream=mat(0xf5ead4,.9),hoodMat=mat(0xd8cbb1,.96),hoodShade=mat(0x9b927f,.98),faceMat=mat(0x171e27,.98),redCape=mat(0xb94728,.7),capeLight=mat(0xe9bd78,.8),gold=mat(0xe7c68a,.55,.08),leather=mat(0x76624b,.9);
-const glowMat=new THREE.MeshStandardMaterial({color:0xfff1cf,emissive:0xffc66e,emissiveIntensity:1.65,roughness:.35});
+const robe=mat(0x171a2b,.86),robeShade=mat(0x292b42,.9),cream=mat(0xf2e7dc,.82),hoodMat=mat(0x8873b9,.78),hoodShade=mat(0x51436f,.86),faceMat=mat(0x090b16,.98),redCape=mat(0xb94728,.7),capeLight=mat(0xff794b,.55),gold=mat(0xf3b66e,.38,.18),leather=mat(0x191827,.9);
+const hairMat=mat(0x8b75c7,.68),hairLight=mat(0xb09ae9,.62),hairShade=mat(0x59447f,.8),blueCloth=mat(0x536fba,.72),blueLight=mat(0x8ea9ed,.62);
+const glowMat=new THREE.MeshStandardMaterial({color:0xffe5bd,emissive:0xff792e,emissiveIntensity:2.2,roughness:.3});
 function mesh(parent,geo,material,pos,scale,rot){const m=new THREE.Mesh(geo,material);if(pos)m.position.set(...pos);if(scale)m.scale.set(...scale);if(rot)m.rotation.set(...rot);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 const torso=new THREE.Group();body.add(torso);
-const robeProfile=[new THREE.Vector2(.11,0),new THREE.Vector2(.18,.07),new THREE.Vector2(.27,.22),new THREE.Vector2(.34,.52),new THREE.Vector2(.37,.83),new THREE.Vector2(.31,1.12),new THREE.Vector2(.2,1.34)];
+const robeProfile=[new THREE.Vector2(.12,0),new THREE.Vector2(.19,.08),new THREE.Vector2(.28,.24),new THREE.Vector2(.34,.55),new THREE.Vector2(.34,.86),new THREE.Vector2(.28,1.12),new THREE.Vector2(.19,1.3)];
 mesh(torso,new THREE.LatheGeometry(robeProfile,48),robe,[0,.22,0]);
-mesh(torso,new THREE.LatheGeometry([new THREE.Vector2(.115,0),new THREE.Vector2(.15,.36),new THREE.Vector2(.16,.72),new THREE.Vector2(.13,1.02)],32),robeShade,[0,.29,-.018]);
-mesh(torso,new THREE.TorusGeometry(.3,.027,8,48),gold,[0,.62,0],[1,1,.9],[Math.PI/2,0,0]);
-mesh(torso,new THREE.OctahedronGeometry(.075,1),glowMat,[0,.69,-.30],[.8,1.15,.6],[0,0,Math.PI/4]);
-// Soft pointed travel hood: cloth silhouette, deep black face void, no helmet rim
-mesh(body,new THREE.SphereGeometry(.59,40,32),hoodMat,[0,2.05,.055],[.98,1.08,.92]);
-mesh(body,new THREE.ConeGeometry(.27,.48,7,1),hoodMat,[0,2.62,.12],[1,.9,1],[0,0,0]);
-mesh(body,new THREE.SphereGeometry(.39,36,28),new THREE.MeshBasicMaterial({color:0x080e16}),[0,2.0,-.405],[.86,.9,.34]);
-// Soft hood folds frame the face opening without a circular visor
+mesh(torso,new THREE.LatheGeometry([new THREE.Vector2(.13,0),new THREE.Vector2(.17,.34),new THREE.Vector2(.18,.7),new THREE.Vector2(.14,.98)],32),robeShade,[0,.29,-.02]);
+mesh(torso,new THREE.TorusGeometry(.31,.035,9,48),gold,[0,.63,0],[1,1,.9],[Math.PI/2,0,0]);
+// Large stylized head with a deep, featureless shadow face
+mesh(body,new THREE.SphereGeometry(.62,40,32),faceMat,[0,2.02,-.045],[.96,1.02,.88]);
+// Thick lavender hair cap and rear bob, visible from every camera angle
+mesh(body,new THREE.SphereGeometry(.65,40,32),hairMat,[0,2.2,.045],[1.04,1.02,1.0]);
+mesh(body,new THREE.SphereGeometry(.57,32,26),hairShade,[0,1.91,.30],[1.04,.82,.84]);
+// Swept layered fringe over the upper face
+for(let i=0;i<7;i++){const x=(i-3)*.155;const lock=mesh(body,new THREE.SphereGeometry(.22,22,18),i%2?hairLight:hairMat,[x,2.23,-.48],[.78,1.45,.52],[0,0,-x*.45]);lock.scale.y=1.5}
+for(let i=0;i<5;i++){const side=i<3?-1:1,idx=i<3?i:i-3;mesh(body,new THREE.CapsuleGeometry(.105,.48+idx*.12,8,16),i%2?hairLight:hairMat,[side*(.43+idx*.08),1.92-idx*.12,.04],[1,1,1],[0,0,-side*.25])}
+// Long pointed ornaments and small glowing orange ear charms
 for(const side of [-1,1]){
- mesh(body,new THREE.SphereGeometry(.17,22,18),hoodMat,[side*.43,1.99,-.10],[.62,1.25,.72],[0,0,-side*.18]);
- mesh(body,new THREE.CapsuleGeometry(.105,.38,7,14),robe,[side*.36,1.22,0],[1,1,1],[0,0,-side*.24]);
+ const ear=mesh(body,new THREE.ConeGeometry(.19,.92,5,1),side===1?hairLight:hoodMat,[side*.62,2.55,.02],[.78,1.15,.48],[0,0,-side*.16]);
+ mesh(body,new THREE.ConeGeometry(.11,.58,5,1),capeLight,[side*.73,2.7,.015],[.72,1,.5],[0,0,-side*.22]);
+ mesh(body,new THREE.OctahedronGeometry(.095,1),glowMat,[side*.55,1.78,-.42],[.7,1.6,.7],[0,0,side*.2]);
 }
-const mantle=new THREE.Group();mantle.position.set(0,1.5,.025);body.add(mantle);
-mesh(mantle,new THREE.SphereGeometry(.39,28,20),robeShade,[0,0,0],[1.48,.43,.92]);
-mesh(mantle,new THREE.TorusGeometry(.34,.026,8,48),gold,[0,-.12,-.035],[1.12,.82,.88],[Math.PI/2,0,0]);
+// Blue padded scarf/cowl wrapping the shoulders, a strong contrasting chest shape
+const mantle=new THREE.Group();mantle.position.set(0,1.5,.015);body.add(mantle);
+mesh(mantle,new THREE.SphereGeometry(.43,32,24),blueCloth,[0,.02,-.015],[1.35,.62,1.02]);
+mesh(mantle,new THREE.TorusGeometry(.34,.085,12,48),blueLight,[0,-.12,-.05],[1.12,.82,.92],[Math.PI/2,0,0]);
+mesh(mantle,new THREE.SphereGeometry(.22,22,18),robe,[0,-.29,-.18],[1.1,.55,.5]);
 const armRigs=[],legRigs=[];
 for(const side of [-1,1]){
- const arm=new THREE.Group();arm.position.set(side*.36,1.42,0);body.add(arm);
- mesh(arm,new THREE.CapsuleGeometry(.13,.38,8,16),robe,[side*.07,-.19,0],[1,1,1],[0,0,-side*.18]);
- mesh(arm,new THREE.SphereGeometry(.105,18,14),hoodMat,[side*.13,-.48,-.025]);
+ const arm=new THREE.Group();arm.position.set(side*.39,1.39,0);body.add(arm);
+ mesh(arm,new THREE.CapsuleGeometry(.16,.42,8,16),robe,[side*.08,-.2,0],[1.12,1.12,1],[0,0,-side*.22]);
+ mesh(arm,new THREE.SphereGeometry(.105,18,14),cream,[side*.15,-.5,-.02]);
  armRigs.push(arm);
- const leg=new THREE.Group();leg.position.set(side*.145,.43,0);body.add(leg);
- mesh(leg,new THREE.CapsuleGeometry(.095,.32,7,14),robeShade,[0,-.13,0]);
- mesh(leg,new THREE.SphereGeometry(.14,18,14),leather,[0,-.34,-.055],[1,.72,1.25]);
+ const leg=new THREE.Group();leg.position.set(side*.15,.43,0);body.add(leg);
+ mesh(leg,new THREE.CapsuleGeometry(.105,.34,7,14),robeShade,[0,-.13,0]);
+ mesh(leg,new THREE.SphereGeometry(.14,18,14),leather,[0,-.35,-.06],[1,.75,1.3]);
  legRigs.push(leg);
 }
-// Wide cloth wing-cape, tapered at shoulders and scalloped at its lower edge
-const capeMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.9,side:THREE.DoubleSide,vertexColors:true});
-const capeGeo=new THREE.PlaneGeometry(2.85,2.45,28,26),capePos=capeGeo.attributes.position;
-const capeCols=[];for(let i=0;i<capePos.count;i++){const v=(capePos.getY(i)+1.225)/2.45;const c=new THREE.Color().lerpColors(new THREE.Color(0xe7b96f),new THREE.Color(0x98603f),THREE.MathUtils.smoothstep(1-v,.12,.96)*.36);capeCols.push(c.r,c.g,c.b)}
+// Broad warm wing-cloak, softly scalloped and animated like fabric in flight
+const capeMat=new THREE.MeshStandardMaterial({color:0xffffff,roughness:.88,side:THREE.DoubleSide,vertexColors:true});
+const capeGeo=new THREE.PlaneGeometry(2.75,2.35,28,26),capePos=capeGeo.attributes.position;
+const capeCols=[];for(let i=0;i<capePos.count;i++){const v=(capePos.getY(i)+1.175)/2.35;const c=new THREE.Color().lerpColors(new THREE.Color(0xf0d8bd),new THREE.Color(0xb98c75),THREE.MathUtils.smoothstep(1-v,.12,.96)*.28);capeCols.push(c.r,c.g,c.b)}
 capeGeo.setAttribute('color',new THREE.Float32BufferAttribute(capeCols,3));
-for(let i=0;i<capePos.count;i++){const x=capePos.getX(i),y=capePos.getY(i),v=(1.225-y)/2.45;const spread=.72+.42*Math.sin(v*Math.PI*.72);capePos.setX(i,x*spread);capePos.setY(i,y-(v>.82?Math.sin((x/1.175+1)*Math.PI*3)*.045:0))}
+for(let i=0;i<capePos.count;i++){const x=capePos.getX(i),y=capePos.getY(i),v=(1.175-y)/2.35;const spread=.72+.38*Math.sin(v*Math.PI*.72);capePos.setX(i,x*spread);capePos.setY(i,y-(v>.82?Math.sin((x/1.375+1)*Math.PI*3)*.055:0))}
 capeGeo.computeVertexNormals();
-const cape=new THREE.Mesh(capeGeo,capeMat);cape.position.set(0,1.08,.43);cape.castShadow=true;body.add(cape);const capeBase=capeGeo.attributes.position.array.slice();
-const capeEdge=new THREE.LineBasicMaterial({color:0xf0d49d,transparent:true,opacity:.72});
-for(const side of [-1,1]){const pts=[];for(let j=0;j<=24;j++){const v=j/24,y=1.225-v*2.45,w=1.425*(.72+.42*Math.sin(v*Math.PI*.72));pts.push(new THREE.Vector3(side*w,y,0))}const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),capeEdge);line.position.set(0,0,.022);cape.add(line)}
-mesh(body,new THREE.SphereGeometry(.13,20,16),gold,[0,1.08,.5],[1,.9,.5]);
-mesh(body,new THREE.OctahedronGeometry(.09,1),glowMat,[0,1.08,.59],[1,1.3,.6]);
-const halo=new THREE.PointLight(0xffd49a,1.05,9);halo.position.set(0,2,0);body.add(halo);
+const cape=new THREE.Mesh(capeGeo,capeMat);cape.position.set(0,1.05,.42);cape.castShadow=true;body.add(cape);const capeBase=capeGeo.attributes.position.array.slice();
+const capeEdge=new THREE.LineBasicMaterial({color:0xffc18c,transparent:true,opacity:.8});
+for(const side of [-1,1]){const pts=[];for(let j=0;j<=24;j++){const v=j/24,y=1.175-v*2.35,w=1.375*(.72+.38*Math.sin(v*Math.PI*.72));pts.push(new THREE.Vector3(side*w,y,0))}const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),capeEdge);line.position.set(0,0,.022);cape.add(line)}
+// Ember-like ornaments trail down one shoulder
+for(let i=0;i<5;i++)mesh(body,new THREE.OctahedronGeometry(.085,1),glowMat,[.39,1.62-i*.19,-.31],[.8,1.35,.65],[0,0,.3]);
+mesh(body,new THREE.OctahedronGeometry(.1,1),glowMat,[0,1.08,.56],[1,1.3,.7]);
+const halo=new THREE.PointLight(0xffa56b,1.15,9);halo.position.set(0,2,0);body.add(halo);
 const shards=[],shardPositions=[[-7,4,-13],[-25,13,-36],[24,19,-69],[-35,27,-107],[9,34,-144],[45,42,-183],[-19,51,-224],[18,62,-269],[4,5,-7],[28,22,-76],[-39,30,-112],[10,67,-275]];
 const shardMat=new THREE.MeshStandardMaterial({color:0xffe8b0,emissive:0xffbb52,emissiveIntensity:2.6,roughness:.2,metalness:.1});
 shardPositions.forEach((p,i)=>{const g=new THREE.Group();const gem=mesh(g,new THREE.OctahedronGeometry(.43,1),shardMat,[0,0,0],[.8,1.5,.8]);mesh(g,new THREE.TorusGeometry(.68,.022,7,40),new THREE.MeshBasicMaterial({color:0xffedc4,transparent:true,opacity:.8}));const l=new THREE.PointLight(0xffd47b,1.3,8);g.add(l);g.position.set(...p);scene.add(g);shards.push({group:g,got:false,phase:i})});
@@ -294,7 +302,7 @@ function animate(now){requestAnimationFrame(animate);const frameMs=Math.min(now-
  if(Math.hypot(velocity.x,velocity.z)>.25){yaw=Math.atan2(velocity.x,-velocity.z);player.rotation.y=THREE.MathUtils.damp(player.rotation.y,yaw,7,dt)}
  const side=velocity.x*Math.cos(cameraYaw)-velocity.z*Math.sin(cameraYaw);player.rotation.z=THREE.MathUtils.damp(player.rotation.z,clamp(-side*.035,-.28,.28),5,dt);player.rotation.x=THREE.MathUtils.damp(player.rotation.x,flying?-clamp(velocity.y*.025,-.18,.3):0,5,dt);flightBlend=THREE.MathUtils.damp(flightBlend,flying?1:0,4.5,dt);landingPulse=THREE.MathUtils.damp(landingPulse,0,7,dt);body.position.y=-landingPulse*.13;body.scale.y=1+landingPulse*.045;torso.rotation.x=THREE.MathUtils.damp(torso.rotation.x,flying?clamp(-velocity.y*.018,-.12,.22):0,4,dt);
  shards.forEach((s,i)=>{if(!s.got&&player.position.distanceTo(s.group.position)<2.35){s.got=true;s.group.visible=false;got.push(i);count=got.length;try{localStorage.setItem('cloud_got',JSON.stringify(got))}catch{}energy=Math.min(100,energy+20);toast('✧ 收集到一枚微光')}});updateHud()}
- const p=cape.geometry.attributes.position;for(let i=0;i<p.count;i++){const x=capeBase[i*3],y=capeBase[i*3+1],tail=Math.max(0,-y),edge=Math.abs(x)/.95;const wave=Math.sin(t*2.2+y*1.8+x*2.3)*(.025+tail*.07)+Math.sin(t*5+y*5+x*3)*(.01+tail*.022);const lift=flying?tail*((input.boost?.82:.48)+Math.max(0,-velocity.z)*.018):0;p.setZ(i,capeBase[i*3+2]+wave+lift+edge*Math.sin(t*1.8+y*2)*.025)}p.needsUpdate=true;if(frameNo%2===0)cape.geometry.computeVertexNormals();
+ const p=cape.geometry.attributes.position;for(let i=0;i<p.count;i++){const x=capeBase[i*3],y=capeBase[i*3+1],tail=Math.max(0,-y),edge=Math.abs(x)/.95;const wave=Math.sin(t*2.2+y*1.8+x*2.3)*(.025+tail*.07)+Math.sin(t*5+y*5+x*3)*(.01+tail*.022);const lift=flying?tail*((input.boost?.9:.52)+Math.max(0,-velocity.z)*.018):0;p.setZ(i,capeBase[i*3+2]+wave+lift+edge*Math.sin(t*1.8+y*2)*.025)}p.needsUpdate=true;if(frameNo%2===0)cape.geometry.computeVertexNormals();
  const gait=moving&&!flying?Math.sin(t*9.5)*.32:0;legRigs[0].rotation.x=gait;legRigs[1].rotation.x=-gait;armRigs[0].rotation.x=flying?-.8:-gait*.65;armRigs[1].rotation.x=flying?-.8:gait*.65;armRigs[0].rotation.z=THREE.MathUtils.damp(armRigs[0].rotation.z,flying?-.4:-.08,5,dt);armRigs[1].rotation.z=THREE.MathUtils.damp(armRigs[1].rotation.z,flying?.4:.08,5,dt);torso.rotation.z=THREE.MathUtils.damp(torso.rotation.z,moving?Math.sin(t*8)*.02:0,6,dt);mantle.rotation.z=flying?Math.sin(t*4)*.025:0;halo.intensity=1.15+Math.sin(t*3)*.28;
  const cf=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch));const speed=velocity.length(),target=player.position.clone().add(new THREE.Vector3(0,2.75+flightBlend*.35,0)).addScaledVector(cf,-(8.2+flightBlend*.7));camera.position.lerp(target,1-Math.pow(.00001,dt));camera.lookAt(player.position.clone().add(new THREE.Vector3(0,1.4+flightBlend*.2,0)).addScaledVector(cf,4.5));const desiredFov=57+clamp(speed*.48,0,9)+flightBlend*2;if(Math.abs(camera.fov-desiredFov)>.08){camera.fov=THREE.MathUtils.damp(camera.fov,desiredFov,3,dt);camera.updateProjectionMatrix()}composer.render()}
 requestAnimationFrame(animate);
