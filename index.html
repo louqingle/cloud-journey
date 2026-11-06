@@ -91,6 +91,27 @@ function terrainHeight(x,z){
  for(let k=0;k<26000;k++){const x=Math.random()*512,y=Math.random()*512,r=.35+Math.random()*2.1;tx.globalAlpha=.08+Math.random()*.2;tx.fillStyle=Math.random()>.72?'#c1b99a':Math.random()>.48?'#344f42':'#a4b28a';tx.beginPath();tx.ellipse(x,y,r,r*(.35+Math.random()),Math.random()*3.14,0,Math.PI*2);tx.fill()}
  tx.globalAlpha=1;const groundTex=new THREE.CanvasTexture(texCanvas);groundTex.wrapS=groundTex.wrapT=THREE.RepeatWrapping;groundTex.repeat.set(18,22);groundTex.colorSpace=THREE.SRGBColorSpace;groundTex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
  const groundMat=new THREE.MeshStandardMaterial({vertexColors:true,map:groundTex,roughness:1,metalness:0});
+ // World-space multi-scale material: mottled soil, fine stone grain and slope-driven exposed rock
+ groundMat.onBeforeCompile=(shader)=>{
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\\nvarying vec3 vTerrainWorldPos;\\nvarying vec3 vTerrainWorldNormal;');
+  shader.vertexShader=shader.vertexShader.replace('#include <worldpos_vertex>','#include <worldpos_vertex>\\nvTerrainWorldPos=(modelMatrix*vec4(transformed,1.0)).xyz;\\nvTerrainWorldNormal=normalize(mat3(modelMatrix)*objectNormal);');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>',`#include <common>
+varying vec3 vTerrainWorldPos;
+varying vec3 vTerrainWorldNormal;
+float terrainHash(vec3 p){p=fract(p*.3183099+.1);p*=17.0;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float terrainNoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(mix(terrainHash(i),terrainHash(i+vec3(1,0,0)),f.x),mix(terrainHash(i+vec3(0,1,0)),terrainHash(i+vec3(1,1,0)),f.x),f.y),mix(mix(terrainHash(i+vec3(0,0,1)),terrainHash(i+vec3(1,0,1)),f.x),mix(terrainHash(i+vec3(0,1,1)),terrainHash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+`);
+  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+float macroGrain=terrainNoise(vTerrainWorldPos*.22);
+float fineGrain=terrainNoise(vTerrainWorldPos*1.8);
+float slopeRock= smoothstep(.34,.82,1.0-abs(normalize(vTerrainWorldNormal).y));
+vec3 soilTint=mix(vec3(.88,.96,.82),vec3(1.10,1.04,.91),macroGrain*.34);
+vec3 stoneTint=mix(vec3(.68,.72,.70),vec3(1.08,1.03,.94),fineGrain*.42);
+diffuseColor.rgb*=mix(soilTint,stoneTint,slopeRock*.92);
+diffuseColor.rgb*=.91+fineGrain*.16;
+`);
+ };
+
  const ground=new THREE.Mesh(geo,groundMat);ground.receiveShadow=true;ground.frustumCulled=false;scene.add(ground);
  // Layered rock outcrops, instanced for mobile-friendly draw calls
  const rockGeo=new THREE.DodecahedronGeometry(1,1),rockMesh=new THREE.InstancedMesh(rockGeo,stoneLight,420),dummy=new THREE.Object3D();
