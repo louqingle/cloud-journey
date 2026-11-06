@@ -248,8 +248,8 @@ function moveStick(e){const r=stick.getBoundingClientRect();let dx=e.clientX-r.l
 stick.addEventListener('pointerdown',e=>{stickOn=true;stick.setPointerCapture(e.pointerId);moveStick(e)});stick.addEventListener('pointermove',e=>{if(stickOn)moveStick(e)});function release(){stickOn=false;input.x=input.y=0;knob.style.transform='translate(0,0)'}stick.addEventListener('pointerup',release);stick.addEventListener('pointercancel',release);
 const look=$('look');let looking=false,lx=0,ly=0;
 look.addEventListener('pointerdown',e=>{looking=true;lx=e.clientX;ly=e.clientY;look.setPointerCapture(e.pointerId)});
-look.addEventListener('pointermove',e=>{if(!looking)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;cameraYaw-=dx*.006;cameraPitch=clamp(cameraPitch-dy*.005,-1.02,.78)});
-function endLook(){looking=false}look.addEventListener('pointerup',endLook);look.addEventListener('pointercancel',endLook);
+look.addEventListener('pointermove',e=>{if(!looking)return;const dx=e.clientX-lx,dy=e.clientY-ly;lx=e.clientX;ly=e.clientY;cameraYaw-=dx*.0048;cameraPitch=clamp(cameraPitch-dy*.0042,-.78,.62)});
+function endLook(){looking=false}look.addEventListener('pointerup',endLook);look.addEventListener('pointercancel',endLook);look.addEventListener('lostpointercapture',endLook);
 $('jump').addEventListener('pointerdown',e=>{e.preventDefault();if(player.position.y<.35&&!flying)velocity.y=8.4});
 $('fly').addEventListener('pointerdown',e=>{e.preventDefault();if(!flying&&energy>2){flying=true;velocity.y=Math.max(velocity.y,2.2);toast('展翼滑翔 · 左摇杆控制方向')}else{flying=false;toast('收起披风')}});
 const boostBtn=$('boost');boostBtn.addEventListener('pointerdown',e=>{e.preventDefault();input.boost=true;boostBtn.setPointerCapture(e.pointerId)});function stopBoost(){input.boost=false}boostBtn.addEventListener('pointerup',stopBoost);boostBtn.addEventListener('pointercancel',stopBoost);boostBtn.addEventListener('lostpointercapture',stopBoost);$('begin').onclick=()=>{$('start').style.display='none';$('hud').classList.add('active');started=true;toast('旅程开始了')};
@@ -259,7 +259,20 @@ function animate(now){requestAnimationFrame(animate);const frameMs=Math.min(now-
  shards.forEach(s=>{if(!s.got){s.group.rotation.y+=dt*.7;s.group.position.y+=Math.sin(t*1.7+s.phase)*dt*.11}});
  let moving=false;
  if(started){const forward=new THREE.Vector3(Math.sin(cameraYaw)*Math.cos(cameraPitch),Math.sin(cameraPitch),-Math.cos(cameraYaw)*Math.cos(cameraPitch)),right=new THREE.Vector3(Math.cos(cameraYaw),0,Math.sin(cameraYaw));const dir=forward.clone().multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(dir.lengthSq()>1)dir.normalize();moving=dir.lengthSq()>.002;
- if(flying&&energy>0){if(moving)velocity.addScaledVector(dir,14*dt);if(input.boost){velocity.y+=12*dt;velocity.addScaledVector(forward,7*dt);energy=Math.max(0,energy-24*dt)}else{velocity.y-=2.4*dt;energy=Math.max(0,energy-5.5*dt)}if(velocity.length()>(input.boost?19:13))velocity.setLength(input.boost?19:13);velocity.multiplyScalar(Math.pow(input.boost?.994:.988,dt*60));if(energy<=0){flying=false;toast('能量耗尽，正在下降')}}else{if(moving){const gd=new THREE.Vector3(Math.sin(cameraYaw),0,-Math.cos(cameraYaw)).multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(gd.lengthSq()>1)gd.normalize();velocity.x=THREE.MathUtils.damp(velocity.x,gd.x*5.4,9,dt);velocity.z=THREE.MathUtils.damp(velocity.z,gd.z*5.4,9,dt)}else{velocity.x=THREE.MathUtils.damp(velocity.x,0,5,dt);velocity.z=THREE.MathUtils.damp(velocity.z,0,5,dt)}velocity.y-=15.5*dt;energy=Math.min(100,energy+7*dt)}
+ if(flying&&energy>0){
+  // Flight should preserve momentum; steer the existing velocity instead of feeling like a rigid rail.
+  const airAccel=input.boost?19:11.5;
+  if(moving)velocity.addScaledVector(dir,airAccel*dt);
+  const horizontalSpeed=Math.hypot(velocity.x,velocity.z);
+  const forwardSpeed=velocity.dot(new THREE.Vector3(Math.sin(cameraYaw),0,-Math.cos(cameraYaw)));
+  if(input.boost){velocity.y+=10.5*dt;velocity.addScaledVector(forward,5.5*dt);energy=Math.max(0,energy-19*dt)}
+  else{const glideLift=clamp(horizontalSpeed*.105,0,1.35);velocity.y+=(glideLift-1.05)*dt;energy=Math.max(0,energy-2.2*dt)}
+  // Gentle pitch authority from the look direction, with stable limits and no sudden vertical snap.
+  velocity.y+=clamp(cameraPitch,-.65,.55)*Math.max(0,forwardSpeed)*.018*dt;
+  const maxSpeed=input.boost?22:16;if(velocity.length()>maxSpeed)velocity.setLength(maxSpeed);
+  velocity.multiplyScalar(Math.pow(input.boost?.9992:.9988,dt*60));
+  if(energy<=0){flying=false;toast('能量耗尽，正在下降')}
+ }else{if(moving){const gd=new THREE.Vector3(Math.sin(cameraYaw),0,-Math.cos(cameraYaw)).multiplyScalar(-input.y).add(right.clone().multiplyScalar(input.x));if(gd.lengthSq()>1)gd.normalize();velocity.x=THREE.MathUtils.damp(velocity.x,gd.x*5.4,9,dt);velocity.z=THREE.MathUtils.damp(velocity.z,gd.z*5.4,9,dt)}else{velocity.x=THREE.MathUtils.damp(velocity.x,0,5,dt);velocity.z=THREE.MathUtils.damp(velocity.z,0,5,dt)}velocity.y-=15.5*dt;energy=Math.min(100,energy+7*dt)}
  player.position.addScaledVector(velocity,dt);const groundY=terrainHeight(player.position.x,player.position.z);if(player.position.y<groundY){player.position.y=groundY;if(velocity.y<0){landingPulse=Math.min(1,Math.abs(velocity.y)*.075);velocity.y=0}if(flying){flying=false;toast('已在山野平稳降落')}}
  for(const [x,y,z,r] of pads){const d=Math.hypot(player.position.x-x,player.position.z-z);if(d<r&&player.position.y<y+1.8&&player.position.y>y-.7&&velocity.y<0){player.position.y=y+.12;velocity.y=0}}
  if(Math.hypot(velocity.x,velocity.z)>.25){yaw=Math.atan2(velocity.x,-velocity.z);player.rotation.y=THREE.MathUtils.damp(player.rotation.y,yaw,7,dt)}
